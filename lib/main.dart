@@ -1,8 +1,11 @@
 import 'dart:collection';
-
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-main() => runApp(const MyApp());
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(MyApp());
+}
 
 class ItemInfo {
   ItemInfo(
@@ -41,17 +44,39 @@ Map<String, ItemInfo> itemInfo = {
 };
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  MyApp({Key? key}) : super(key: key);
 
+  final Future<FirebaseApp> _initialization = Firebase.initializeApp();
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: '뱀파이어 서바이버 파워업 순서 계산기',
-      home: Scaffold(
+      home:
+          /*
+      Scaffold(
         appBar: AppBar(
           title: const Text('뱀파이어 서바이버 파워업 순서 계산기'),
         ),
         body: const ResultPanel(),
+      ),
+      */
+
+          FutureBuilder(
+        future: _initialization,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            print('Error');
+          }
+          if (snapshot.connectionState == ConnectionState.done) {
+            return Scaffold(
+              appBar: AppBar(
+                title: const Text('뱀파이어 서바이버 파워업 순서 계산기'),
+              ),
+              body: const ResultPanel(),
+            );
+          }
+          return const CircularProgressIndicator();
+        },
       ),
     );
   }
@@ -152,6 +177,7 @@ class _ResultPanelState extends State<ResultPanel> {
             children: [
               Row(
                 children: [
+                  const SizedBox(width: 5),
                   Text('원하는 파워업', style: Theme.of(context).textTheme.headline5),
                   Expanded(child: Container()),
                   OutlinedButton(
@@ -176,7 +202,8 @@ class _ResultPanelState extends State<ResultPanel> {
                         _calculateOrder();
                       });
                     },
-                  )
+                  ),
+                  const SizedBox(width: 5),
                 ],
               ),
               Expanded(child: ListView(children: itemSliderTileList)),
@@ -184,7 +211,7 @@ class _ResultPanelState extends State<ResultPanel> {
           ),
         ),
         const SizedBox(
-          width: 100,
+          width: 5,
         ),
         Expanded(
           child: Column(
