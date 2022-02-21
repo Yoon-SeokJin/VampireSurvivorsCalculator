@@ -59,7 +59,7 @@ class MyApp extends StatelessWidget {
         ),
         body: const ResultPanel(),
       ),
-      */
+*/
 
           FutureBuilder(
         future: _initialization,
@@ -75,7 +75,10 @@ class MyApp extends StatelessWidget {
               body: const ResultPanel(),
             );
           }
-          return const CircularProgressIndicator();
+          return const Center(
+            child: SizedBox(
+                width: 100, height: 100, child: CircularProgressIndicator()),
+          );
         },
       ),
     );
@@ -162,7 +165,7 @@ class _ResultPanelState extends State<ResultPanel> {
 
   @override
   Widget build(BuildContext context) {
-    List<ItemSliderTile> itemSliderTileList = <ItemSliderTile>[];
+    List<Widget> itemSliderTileList = <Widget>[];
     itemInfo.forEach((key, _) {
       itemSliderTileList.add(ItemSliderTile(
         itemName: key,
@@ -260,8 +263,6 @@ class ItemSliderTile extends StatefulWidget {
 }
 
 class _ItemSliderTileState extends State<ItemSliderTile> {
-  final GlobalKey<_ItemSliderTileState> _itemSliderTileState =
-      GlobalKey<_ItemSliderTileState>();
   @override
   Widget build(BuildContext context) {
     return ListTile(
