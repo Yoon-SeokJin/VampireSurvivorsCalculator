@@ -107,7 +107,7 @@ class _ResultPanelState extends State<ResultPanel> {
     int price = 0, idx = 0;
     for (String name in order) {
       price += getPriceOneItem(itemInfo[name]!, idx: idx);
-      idx += itemInfo[name]!.maxLevel;
+      idx += itemInfo[name]!.currentLevel;
     }
     return price;
   }
