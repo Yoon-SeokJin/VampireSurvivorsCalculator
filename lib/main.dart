@@ -1,87 +1,98 @@
 import 'dart:collection';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'firebase_options.dart';
+import 'item_database.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MyApp());
+  runApp(const MyApp());
 }
-
-class ItemInfo {
-  ItemInfo(
-      {required this.price, required this.maxLevel, required this.imagePath});
-  final int price;
-  final int maxLevel;
-  final String imagePath;
-  int currentLevel = 0;
-}
-
-Map<String, ItemInfo> itemInfo = {
-  'Might': ItemInfo(price: 200, maxLevel: 5, imagePath: 'images/Might.png'),
-  'Armor': ItemInfo(price: 600, maxLevel: 3, imagePath: 'images/Armor.png'),
-  'Max health':
-      ItemInfo(price: 200, maxLevel: 3, imagePath: 'images/MaxHealth.png'),
-  'Recovery':
-      ItemInfo(price: 200, maxLevel: 5, imagePath: 'images/Recovery.png'),
-  'Cool down':
-      ItemInfo(price: 900, maxLevel: 2, imagePath: 'images/CoolDown.png'),
-  'Area': ItemInfo(price: 300, maxLevel: 2, imagePath: 'images/Area.png'),
-  'Speed': ItemInfo(price: 300, maxLevel: 2, imagePath: 'images/Speed.png'),
-  'Duration':
-      ItemInfo(price: 300, maxLevel: 2, imagePath: 'images/Duration.png'),
-  'Amount': ItemInfo(price: 5000, maxLevel: 1, imagePath: 'images/Amount.png'),
-  'Move speed':
-      ItemInfo(price: 300, maxLevel: 2, imagePath: 'images/MoveSpeed.png'),
-  'Magnet': ItemInfo(price: 300, maxLevel: 2, imagePath: 'images/Magnet.png'),
-  'Luck': ItemInfo(price: 600, maxLevel: 3, imagePath: 'images/Luck.png'),
-  'Growth': ItemInfo(price: 900, maxLevel: 5, imagePath: 'images/Growth.png'),
-  'Greed': ItemInfo(price: 200, maxLevel: 5, imagePath: 'images/Greed.png'),
-  'Curse': ItemInfo(price: 1666, maxLevel: 5, imagePath: 'images/Curse.png'),
-  'Revival':
-      ItemInfo(price: 10000, maxLevel: 1, imagePath: 'images/Revival.png'),
-  'Reroll': ItemInfo(price: 5000, maxLevel: 2, imagePath: 'images/Reroll.png'),
-  'Skip': ItemInfo(price: 1000, maxLevel: 1, imagePath: 'images/Skip.png'),
-};
 
 class MyApp extends StatelessWidget {
-  MyApp({Key? key}) : super(key: key);
+  const MyApp({Key? key}) : super(key: key);
 
-  final Future<FirebaseApp> _initialization = Firebase.initializeApp();
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '뱀파이어 서바이버 파워업 순서 계산기',
-      home:
-          /*
-      Scaffold(
-        appBar: AppBar(
-          title: const Text('뱀파이어 서바이버 파워업 순서 계산기'),
+      title: '뱀서 파워업 순서 계산기',
+      home: FutureBuilder(
+        future: Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
         ),
-        body: const ResultPanel(),
-      ),
-*/
-
-          FutureBuilder(
-        future: _initialization,
         builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            print('Error');
-          }
           if (snapshot.connectionState == ConnectionState.done) {
-            return Scaffold(
-              appBar: AppBar(
-                title: const Text('뱀파이어 서바이버 파워업 순서 계산기'),
+            return const MyHomePage();
+          }
+          if (snapshot.hasError) {
+            return const Center(
+              child: SizedBox(
+                width: 400,
+                height: 400,
+                child: LoadFailed(),
               ),
-              body: const ResultPanel(),
             );
           }
           return const Center(
             child: SizedBox(
-                width: 100, height: 100, child: CircularProgressIndicator()),
+              width: 100,
+              height: 100,
+              child: CircularProgressIndicator(),
+            ),
           );
         },
       ),
     );
+  }
+}
+
+class LoadFailed extends StatelessWidget {
+  const LoadFailed({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return FittedBox(
+      fit: BoxFit.contain,
+      child: Column(
+        children: [
+          const Icon(Icons.sms_failed_outlined, size: 100),
+          Text('불러오지 못했습니다.', style: Theme.of(context).textTheme.headline4),
+        ],
+        mainAxisAlignment: MainAxisAlignment.center,
+      ),
+    );
+  }
+}
+
+class MyHomePage extends StatelessWidget {
+  const MyHomePage({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('뱀파이어 서바이버 파워업 순서 계산기'),
+      ),
+      body: const PowerUpPage(),
+    );
+  }
+}
+
+class PowerUpPage extends StatefulWidget {
+  const PowerUpPage({Key? key}) : super(key: key);
+
+  @override
+  _PowerUpPageState createState() => _PowerUpPageState();
+}
+
+class _PowerUpPageState extends State<PowerUpPage> {
+  @override
+  Widget build(BuildContext context) {
+    return const ResultPanel();
   }
 }
 
@@ -132,8 +143,8 @@ class _ResultPanelState extends State<ResultPanel> {
           if (i != j &&
               itemInfo[i]!.currentLevel > 0 &&
               itemInfo[j]!.currentLevel > 0) {
-            int di = getInflation(itemInfo[i]!) * itemInfo[j]!.maxLevel;
-            int dj = getInflation(itemInfo[j]!) * itemInfo[i]!.maxLevel;
+            int di = getInflation(itemInfo[i]!) * itemInfo[j]!.currentLevel;
+            int dj = getInflation(itemInfo[j]!) * itemInfo[i]!.currentLevel;
             if (di > dj) {
               topology[i]!.add(j);
               indegree[j] = indegree[j]! + 1;
