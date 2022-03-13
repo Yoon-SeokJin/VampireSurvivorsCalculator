@@ -35,7 +35,7 @@ class PowerUpPool with ChangeNotifier {
         ItemInfo(price: 10000, maxLevel: 1, imagePath: 'images/Revival.png'),
     'Reroll':
         ItemInfo(price: 5000, maxLevel: 2, imagePath: 'images/Reroll.png'),
-    'Skip': ItemInfo(price: 1000, maxLevel: 2, imagePath: 'images/Skip.png'),
+    'Skip': ItemInfo(price: 200, maxLevel: 2, imagePath: 'images/Skip.png'),
   };
 
   bool _showDetail = false;
