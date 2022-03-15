@@ -1,15 +1,37 @@
 import 'package:flutter/material.dart';
 
-class ItemInfo {
-  ItemInfo(
-      {required this.price, required this.maxLevel, required this.imagePath});
+abstract class ItemInfoBase {
+  ItemInfoBase({required this.price, required this.maxLevel});
   final int price;
   final int maxLevel;
+  Widget get figure;
+}
+
+class ItemInfo extends ItemInfoBase {
+  ItemInfo({price, maxLevel, required this.imagePath})
+      : super(price: price, maxLevel: maxLevel);
   final String imagePath;
+  @override
+  Widget get figure => Image.asset(
+        imagePath,
+        filterQuality: FilterQuality.none,
+        fit: BoxFit.fill,
+      );
+}
+
+class ExtraItemInfo extends ItemInfoBase {
+  ExtraItemInfo({price, maxLevel, required this.icon})
+      : super(price: price, maxLevel: maxLevel);
+  IconData icon;
+  @override
+  Widget get figure => FittedBox(
+        child: Icon(icon),
+        fit: BoxFit.fill,
+      );
 }
 
 class PowerUpPool with ChangeNotifier {
-  Map<String, ItemInfo> itemInfos = {
+  Map<String, ItemInfoBase> itemInfos = {
     'Might': ItemInfo(price: 200, maxLevel: 5, imagePath: 'images/Might.png'),
     'Armor': ItemInfo(price: 600, maxLevel: 3, imagePath: 'images/Armor.png'),
     'Max health':
@@ -79,6 +101,14 @@ class PowerUpPool with ChangeNotifier {
     powerUps.forEach((key, value) {
       value.value = 0;
     });
+  }
+
+  void addPowerUp(String key, ItemInfoBase value) {
+    itemInfos.addEntries([MapEntry(key, value)]);
+    PowerUp powerUp = PowerUp();
+    powerUps[key] = powerUp;
+    powerUp.addListener(notifyListeners);
+    notifyListeners();
   }
 }
 

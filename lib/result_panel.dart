@@ -43,14 +43,10 @@ class ResultPanel extends StatelessWidget {
                           height:
                               Theme.of(context).dataTableTheme.dataRowHeight ??
                                   kMinInteractiveDimension,
-                          child: Image.asset(
-                            context
-                                .watch<PowerUpPool>()
-                                .itemInfos[result.name]!
-                                .imagePath,
-                            filterQuality: FilterQuality.none,
-                            fit: BoxFit.cover,
-                          ),
+                          child: context
+                              .watch<PowerUpPool>()
+                              .itemInfos[result.name]!
+                              .figure,
                         ),
                       ),
                       DataCell(
@@ -90,14 +86,10 @@ class ResultPanel extends StatelessWidget {
             children: [
               for (Result result in results)
                 ItemInfoIcon(
-                  image: Image.asset(
-                    context
-                        .watch<PowerUpPool>()
-                        .itemInfos[result.name]!
-                        .imagePath,
-                    filterQuality: FilterQuality.none,
-                    fit: BoxFit.cover,
-                  ),
+                  figure: context
+                      .watch<PowerUpPool>()
+                      .itemInfos[result.name]!
+                      .figure,
                   level:
                       context.watch<PowerUpPool>().powerUps[result.name]!.value,
                   order: result.order,
@@ -139,12 +131,12 @@ class ResultPanel extends StatelessWidget {
 class ItemInfoIcon extends StatelessWidget {
   const ItemInfoIcon({
     Key? key,
-    required this.image,
+    required this.figure,
     required this.order,
     required this.level,
   }) : super(key: key);
 
-  final Image image;
+  final Widget figure;
   final int? order;
   final int level;
 
@@ -176,7 +168,7 @@ class ItemInfoIcon extends StatelessWidget {
               height: (Theme.of(context).dataTableTheme.dataRowHeight ??
                       kMinInteractiveDimension) *
                   1.5,
-              child: image,
+              child: figure,
             ),
             getOutlinedText((order ?? '').toString())
           ],
