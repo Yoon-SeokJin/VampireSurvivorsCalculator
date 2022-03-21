@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'power_up_local_storage.dart';
 import 'power_up_pool.dart';
 
 class ItemSliderList extends StatelessWidget {
@@ -11,17 +12,21 @@ class ItemSliderList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double titleWidth = context.watch<PowerUpPool>().getTextWidthMax(context);
+    var powerUpPool = context.read<PowerUpPool>();
+    double titleWidth = powerUpPool.getTextWidthMax(context);
     List<Widget> itemSliderTileList = [];
-    context.watch<PowerUpPool>().itemInfos.forEach((key, _) {
-      itemSliderTileList.add(ChangeNotifierProvider.value(
-        value: context.read<PowerUpPool>().powerUps[key],
-        child: ItemSliderTile(
-          itemName: key,
-          titleWidth: titleWidth,
-        ),
-      ));
-    });
+    var basicItemList = context.watch<PowerUpLocalStorage>().itemInfosRaw.keys;
+    context.watch<PowerUpLocalStorage>().itemInfos.forEach(
+      (key, value) {
+        itemSliderTileList.add(
+          ItemSliderTile(
+            itemName: key,
+            titleWidth: titleWidth,
+            removable: !basicItemList.contains(key),
+          ),
+        );
+      },
+    );
 
     ScrollController _scrollController = ScrollController();
 
@@ -31,18 +36,24 @@ class ItemSliderList extends StatelessWidget {
           children: [
             const Padding(
               padding: EdgeInsets.all(8.0),
-              child: Text('뱀파이어 서바이버 0.3.1 기준 (22.03.11.)'),
+              child: Text('뱀파이어 서바이버 0.3.1h 기준 (22.03.22.)'),
             ),
             const Spacer(),
             ElevatedButton(
               child: const Text('최소'),
-              onPressed: context.read<PowerUpPool>().setMinAll,
+              onPressed: () {
+                powerUpPool.setMinAll();
+                powerUpPool.saveSliderValue();
+              },
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(
                 child: const Text('최대'),
-                onPressed: context.read<PowerUpPool>().setMaxAll,
+                onPressed: () {
+                  powerUpPool.setMaxAll();
+                  powerUpPool.saveSliderValue();
+                },
               ),
             ),
           ],
@@ -73,21 +84,27 @@ class ItemSliderList extends StatelessWidget {
 
 class ItemSliderTile extends StatelessWidget {
   const ItemSliderTile(
-      {Key? key, required this.itemName, required this.titleWidth})
+      {Key? key,
+      required this.itemName,
+      required this.titleWidth,
+      this.removable = false})
       : super(key: key);
   final String itemName;
   final double titleWidth;
+  final bool removable;
 
   @override
   Widget build(BuildContext context) {
     SliderComponentShape trackShape =
         SliderTheme.of(context).overlayShape ?? const RoundSliderOverlayShape();
     Size iconSize = trackShape.getPreferredSize(true, true);
+    var itemInfo = context.watch<PowerUpLocalStorage>().itemInfos[itemName]!;
     return Row(
       children: [
         SizedBox.fromSize(
-            size: iconSize,
-            child: context.watch<PowerUpPool>().itemInfos[itemName]!.figure),
+          size: iconSize,
+          child: itemInfo.figure,
+        ),
         const SizedBox(width: 8.0),
         SizedBox(
           width: titleWidth,
@@ -95,16 +112,22 @@ class ItemSliderTile extends StatelessWidget {
         ),
         Expanded(
           child: EvenlyDividedSlider(
-            value: context.watch<PowerUpPool>().powerUps[itemName]!.value,
-            max: context.watch<PowerUpPool>().itemInfos[itemName]!.maxLevel,
-            divisions: max(
-                5, context.watch<PowerUpPool>().itemInfos[itemName]!.maxLevel),
-            onChanged: (double value) {
-              context.read<PowerUpPool>().powerUps[itemName]!.value =
-                  value.toInt();
-            },
+            value: context
+                .select<PowerUpPool, int>((value) => value.powerUps[itemName]!),
+            max: itemInfo.maxLevel,
+            divisions: max(5, itemInfo.maxLevel),
+            onChanged: (value) =>
+                context.read<PowerUpPool>().setValue(itemName, value),
+            onChangedEnd: (value) =>
+                context.read<PowerUpPool>().saveSliderValue(),
           ),
         ),
+        if (removable)
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () =>
+                context.read<PowerUpPool>().removeExtraPowerUp(itemName),
+          )
       ],
     );
   }
@@ -117,12 +140,14 @@ class EvenlyDividedSlider extends StatelessWidget {
     required this.max,
     required this.divisions,
     required this.onChanged,
+    this.onChangedEnd,
   })  : assert(max <= divisions),
         super(key: key);
   final int value;
   final int max;
   final int divisions;
-  final void Function(double) onChanged;
+  final void Function(int)? onChanged;
+  final void Function(int)? onChangedEnd;
 
   @override
   Widget build(BuildContext context) {
@@ -142,7 +167,12 @@ class EvenlyDividedSlider extends StatelessWidget {
             value: value.toDouble(),
             max: max.toDouble(),
             divisions: max,
-            onChanged: onChanged,
+            onChanged: onChanged != null
+                ? (double value) => onChanged!(value.toInt())
+                : null,
+            onChangeEnd: onChangedEnd != null
+                ? (double value) => onChangedEnd!(value.toInt())
+                : null,
           ),
         ),
       );
@@ -177,7 +207,7 @@ class _AddPowerUpDialogState extends State<AddPowerUpDialog> {
     IconData iconData = IconData(codePoint, fontFamily: 'MaterialIcons');
     int extraNum = 1;
     while (widget.ancestorContext
-            .read<PowerUpPool>()
+            .read<PowerUpLocalStorage>()
             .itemInfos['Extra' + extraNum.toString()] !=
         null) {
       ++extraNum;
@@ -206,7 +236,7 @@ class _AddPowerUpDialogState extends State<AddPowerUpDialog> {
                           return '이름을 입력하세요.';
                         }
                         if (widget.ancestorContext
-                                .read<PowerUpPool>()
+                                .read<PowerUpLocalStorage>()
                                 .itemInfos[value] !=
                             null) {
                           return '이미 사용 중입니다.';
@@ -282,10 +312,16 @@ class _AddPowerUpDialogState extends State<AddPowerUpDialog> {
             if (isValid) {
               formKey.currentState!.save();
               ExtraItemInfo value = ExtraItemInfo(
-                  price: itemPrice, maxLevel: itemMaxLevel, icon: iconData);
+                price: itemPrice,
+                maxLevel: itemMaxLevel,
+                icon: iconData,
+              );
               widget.ancestorContext
-                  .read<PowerUpPool>()
-                  .addPowerUp(itemName, value);
+                  .read<PowerUpLocalStorage>()
+                  .addItemInfos(itemName, value);
+              widget.ancestorContext
+                  .read<PowerUpLocalStorage>()
+                  .saveItemInfos();
               Navigator.pop(context);
             }
           },

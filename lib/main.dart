@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:localstorage/localstorage.dart';
+import 'package:yaml/yaml.dart';
 import 'firebase_options.dart';
 import 'power_up_page.dart';
 import 'power_up_pool.dart';
 import 'power_up_calculator.dart';
+import 'power_up_local_storage.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -78,6 +82,10 @@ class MyHomePage extends StatelessWidget {
     const String info = '뱀파이어 서바이버에서는 파워업 한 횟수에 따라 10퍼센트의 추가비용이 붙습니다.\n'
         '때문에 같은 스펙의 파워업을 하더라도 파워업의 순서에 따라 총 비용이 달라집니다.\n'
         '이 계산기는 하고자 하는 파워업을 입력하면 가장 저렴한 순서를 계산해줍니다.';
+    LocalStorage storage = LocalStorage('PowerUps');
+    Future<String> itemInfosRaw = rootBundle.loadString('lib/item_infos.yaml');
+    late YamlMap itemInfos;
+    itemInfosRaw.then((value) => itemInfos = loadYaml(value));
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -98,16 +106,49 @@ class MyHomePage extends StatelessWidget {
           ],
         ),
       ),
-      body: MultiProvider(
-        providers: [
-          ChangeNotifierProvider<PowerUpPool>(create: (_) => PowerUpPool()),
-          ChangeNotifierProxyProvider<PowerUpPool, PowerUpCalculator>(
-              create: (context) =>
-                  PowerUpCalculator(context.read<PowerUpPool>()),
-              update: (context, powerUpPool, powerUpCalculator) =>
-                  PowerUpCalculator(powerUpPool)),
-        ],
-        child: const PowerUpPage(),
+      body: FutureBuilder(
+        future: Future.wait([
+          storage.ready,
+          itemInfosRaw,
+        ]),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return MultiProvider(
+              providers: [
+                ChangeNotifierProvider<PowerUpLocalStorage>(
+                    create: (_) => PowerUpLocalStorage(storage, itemInfos)),
+                ChangeNotifierProxyProvider<PowerUpLocalStorage, PowerUpPool>(
+                    create: (context) =>
+                        PowerUpPool(context.read<PowerUpLocalStorage>()),
+                    update: (context, powerUpLocalStorage, _) =>
+                        PowerUpPool(powerUpLocalStorage)),
+                ChangeNotifierProxyProvider<PowerUpPool, PowerUpCalculator>(
+                  create: (context) =>
+                      PowerUpCalculator(context.read<PowerUpPool>()),
+                  update: (context, powerUpPool, _) =>
+                      PowerUpCalculator(powerUpPool),
+                ),
+              ],
+              child: const PowerUpPage(),
+            );
+          }
+          if (snapshot.hasError) {
+            return const Center(
+              child: SizedBox(
+                width: 400,
+                height: 400,
+                child: LoadFailed(),
+              ),
+            );
+          }
+          return const Center(
+            child: SizedBox(
+              width: 100,
+              height: 100,
+              child: CircularProgressIndicator(),
+            ),
+          );
+        },
       ),
     );
   }

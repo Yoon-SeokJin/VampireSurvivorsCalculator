@@ -37,6 +37,8 @@ dependencies:
   firebase_core: ^1.12.0
   provider: ^6.0.2
   collection: ^1.15.0
+  localstorage: ^4.0.0+1
+  yaml: ^3.1.0
 
 dev_dependencies:
   flutter_test:
@@ -67,6 +69,7 @@ flutter:
 
   assets:
     - images/
+    - lib/item_infos.yaml
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

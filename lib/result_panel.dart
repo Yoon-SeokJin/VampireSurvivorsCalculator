@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'power_up_local_storage.dart';
 import 'power_up_pool.dart';
 import 'power_up_calculator.dart';
 
@@ -44,7 +45,7 @@ class ResultPanel extends StatelessWidget {
                               Theme.of(context).dataTableTheme.dataRowHeight ??
                                   kMinInteractiveDimension,
                           child: context
-                              .watch<PowerUpPool>()
+                              .watch<PowerUpLocalStorage>()
                               .itemInfos[result.name]!
                               .figure,
                         ),
@@ -54,7 +55,6 @@ class ResultPanel extends StatelessWidget {
                             context
                                 .watch<PowerUpPool>()
                                 .powerUps[result.name]!
-                                .value
                                 .toString(),
                             style: Theme.of(context).textTheme.headline6),
                       ),
@@ -87,11 +87,10 @@ class ResultPanel extends StatelessWidget {
               for (Result result in results)
                 ItemInfoIcon(
                   figure: context
-                      .watch<PowerUpPool>()
+                      .watch<PowerUpLocalStorage>()
                       .itemInfos[result.name]!
                       .figure,
-                  level:
-                      context.watch<PowerUpPool>().powerUps[result.name]!.value,
+                  level: context.watch<PowerUpPool>().powerUps[result.name]!,
                   order: result.order,
                 ),
             ],

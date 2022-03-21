@@ -43,17 +43,19 @@ class PowerUpCalculator with ChangeNotifier {
 
   List<Result> get getResult {
     List<String> itemNames = [
-      for (String e in powerUpPool.itemInfos.keys)
-        if (powerUpPool.powerUps[e]!.value > 0) e
+      for (String e in powerUpPool.powerUpLocalStorage.itemInfos.keys)
+        if (powerUpPool.powerUps[e]! > 0) e
     ];
 
     itemNames.sort(((a, b) {
       int da = _getInflation(
-              powerUpPool.itemInfos[a]!.price, powerUpPool.powerUps[a]!.value) *
-          powerUpPool.powerUps[b]!.value;
+              powerUpPool.powerUpLocalStorage.itemInfos[a]!.price,
+              powerUpPool.powerUps[a]!) *
+          powerUpPool.powerUps[b]!;
       int db = _getInflation(
-              powerUpPool.itemInfos[b]!.price, powerUpPool.powerUps[b]!.value) *
-          powerUpPool.powerUps[a]!.value;
+              powerUpPool.powerUpLocalStorage.itemInfos[b]!.price,
+              powerUpPool.powerUps[b]!) *
+          powerUpPool.powerUps[a]!;
       return db.compareTo(da);
     }));
 
@@ -61,12 +63,14 @@ class PowerUpCalculator with ChangeNotifier {
     List<int?> orders = [1];
 
     for (int i = 1; i < names.length; ++i) {
-      int da = _getInflation(powerUpPool.itemInfos[names[i - 1]]!.price,
-              powerUpPool.powerUps[names[i - 1]]!.value) *
-          powerUpPool.powerUps[names[i]]!.value;
-      int db = _getInflation(powerUpPool.itemInfos[names[i]]!.price,
-              powerUpPool.powerUps[names[i]]!.value) *
-          powerUpPool.powerUps[names[i - 1]]!.value;
+      int da = _getInflation(
+              powerUpPool.powerUpLocalStorage.itemInfos[names[i - 1]]!.price,
+              powerUpPool.powerUps[names[i - 1]]!) *
+          powerUpPool.powerUps[names[i]]!;
+      int db = _getInflation(
+              powerUpPool.powerUpLocalStorage.itemInfos[names[i]]!.price,
+              powerUpPool.powerUps[names[i]]!) *
+          powerUpPool.powerUps[names[i - 1]]!;
       if (da > db) {
         orders.add(i + 1);
       } else {
@@ -74,9 +78,12 @@ class PowerUpCalculator with ChangeNotifier {
       }
     }
 
-    List<int> costs = _getCost(
-        [for (String name in names) powerUpPool.itemInfos[name]!.price],
-        [for (String name in names) powerUpPool.powerUps[name]!.value]);
+    List<int> costs = _getCost([
+      for (String name in names)
+        powerUpPool.powerUpLocalStorage.itemInfos[name]!.price
+    ], [
+      for (String name in names) powerUpPool.powerUps[name]!
+    ]);
     List<int> costsAccumulate = [];
     for (int cost in costs) {
       if (costsAccumulate.isEmpty) {
