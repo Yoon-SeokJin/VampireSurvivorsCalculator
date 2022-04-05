@@ -1,3 +1,4 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
@@ -17,37 +18,49 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
+  static FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+  static FirebaseAnalyticsObserver observer =
+      FirebaseAnalyticsObserver(analytics: analytics);
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: '뱀서 파워업 순서 계산기',
-      home: FutureBuilder(
-        future: Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        ),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            return const MyHomePage();
-          }
-          if (snapshot.hasError) {
-            return const Center(
+    const String title = '뱀서 파워업 순서 계산기';
+    return FutureBuilder(
+      future: Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      ),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          analytics.logAppOpen();
+          return MaterialApp(
+            navigatorObservers: [observer],
+            title: title,
+            home: const MyHomePage(),
+          );
+        }
+        if (snapshot.hasError) {
+          return const MaterialApp(
+            title: title,
+            home: Center(
               child: SizedBox(
                 width: 400,
                 height: 400,
                 child: LoadFailed(),
               ),
-            );
-          }
-          return const Center(
+            ),
+          );
+        }
+        return const MaterialApp(
+          title: title,
+          home: Center(
             child: SizedBox(
               width: 100,
               height: 100,
               child: CircularProgressIndicator(),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }
