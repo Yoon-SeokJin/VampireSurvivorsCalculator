@@ -14,6 +14,6 @@
 'Greed': {price: 200, maxLevel: 5, imagePath: 'images/Greed.png',}
 'Curse': {price: 1666, maxLevel: 5, imagePath: 'images/Curse.png',}
 'Revival': {price: 10000, maxLevel: 1, imagePath: 'images/Revival.png',}
-'Reroll': {price: 5000, maxLevel: 2, imagePath: 'images/Reroll.png',}
+'Reroll': {price: 5000, maxLevel: 3, imagePath: 'images/Reroll.png',}
 'Skip': {price: 200, maxLevel: 2, imagePath: 'images/Skip.png',}
-'Banish': {price: 200, maxLevel: 1, imagePath: 'images/Banish.png',}
+'Banish': {price: 200, maxLevel: 2, imagePath: 'images/Banish.png',}

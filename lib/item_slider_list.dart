@@ -36,7 +36,7 @@ class ItemSliderList extends StatelessWidget {
           children: [
             const Padding(
               padding: EdgeInsets.all(8.0),
-              child: Text('뱀파이어 서바이버 0.3.1h 기준 (22.03.22.)'),
+              child: Text('뱀파이어 서바이버 0.4.1 기준 (22.04.05.)'),
             ),
             const Spacer(),
             ElevatedButton(
