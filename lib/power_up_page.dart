@@ -27,7 +27,7 @@ class PowerUpPage extends StatelessWidget {
           context.watch<PowerUpPool>();
           return Row(
             children: const [
-              SizedBox(width: 400, child: itemSliderList),
+              SizedBox(width: 450, child: itemSliderList),
               Expanded(child: resultPanel),
             ],
           );

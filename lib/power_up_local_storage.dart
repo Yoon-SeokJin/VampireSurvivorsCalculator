@@ -11,9 +11,10 @@ abstract class ItemInfoBase {
 }
 
 class ItemInfo extends ItemInfoBase {
-  ItemInfo({price, maxLevel, required this.imagePath})
+  ItemInfo({price, maxLevel, required this.imagePath, required this.id})
       : super(price: price, maxLevel: maxLevel);
   final String imagePath;
+  final String id;
   @override
   Widget get figure => Image.asset(
         imagePath,
@@ -26,6 +27,7 @@ class ItemInfo extends ItemInfoBase {
       'imagePath': imagePath,
       'price': price,
       'maxLevel': maxLevel,
+      'id': id,
     };
     return result;
   }
@@ -62,6 +64,7 @@ class PowerUpLocalStorage with ChangeNotifier {
         price: value['price'],
         maxLevel: value['maxLevel'],
         imagePath: value['imagePath'],
+        id: value['id'],
       );
     });
     var storedItemInfos =
@@ -72,6 +75,7 @@ class PowerUpLocalStorage with ChangeNotifier {
           if (value['imagePath'] != null) {
             itemInfos[key] = ItemInfo(
               imagePath: value['imagePath'],
+              id: value['id'],
               price: value['price'],
               maxLevel: value['maxLevel'],
             );

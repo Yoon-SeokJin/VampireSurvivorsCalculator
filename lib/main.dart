@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:localstorage/localstorage.dart';
 import 'package:yaml/yaml.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'firebase_options.dart';
 import 'power_up_page.dart';
 import 'power_up_pool.dart';
@@ -19,46 +20,47 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
   static FirebaseAnalytics analytics = FirebaseAnalytics.instance;
-  static FirebaseAnalyticsObserver observer =
-      FirebaseAnalyticsObserver(analytics: analytics);
+  static FirebaseAnalyticsObserver observer = FirebaseAnalyticsObserver(analytics: analytics);
 
   @override
   Widget build(BuildContext context) {
-    const String title = '뱀서 파워업 순서 계산기';
+    const String title = 'vampire survivors calculator';
+
+    const Widget loadFailed = Center(
+      child: SizedBox.square(
+        dimension: 400,
+        child: LoadFailed(),
+      ),
+    );
+
+    const Widget progressIndicator = Center(
+      child: SizedBox.square(
+        dimension: 100,
+        child: CircularProgressIndicator(),
+      ),
+    );
+
     return FutureBuilder(
       future: Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       ),
       builder: (context, snapshot) {
+        Widget home = progressIndicator;
+        List<NavigatorObserver> navigatorObservers = [];
         if (snapshot.connectionState == ConnectionState.done) {
+          home = const MyHomePage();
+          navigatorObservers.add(observer);
           analytics.logAppOpen();
-          return MaterialApp(
-            navigatorObservers: [observer],
-            title: title,
-            home: const MyHomePage(),
-          );
+        } else if (snapshot.hasError) {
+          home = loadFailed;
         }
-        if (snapshot.hasError) {
-          return const MaterialApp(
-            title: title,
-            home: Center(
-              child: SizedBox(
-                width: 400,
-                height: 400,
-                child: LoadFailed(),
-              ),
-            ),
-          );
-        }
-        return const MaterialApp(
+        return MaterialApp(
+          navigatorObservers: navigatorObservers,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          //locale: const Locale('en'),
           title: title,
-          home: Center(
-            child: SizedBox(
-              width: 100,
-              height: 100,
-              child: CircularProgressIndicator(),
-            ),
-          ),
+          home: home,
         );
       },
     );
@@ -77,7 +79,8 @@ class LoadFailed extends StatelessWidget {
       child: Column(
         children: [
           const Icon(Icons.sms_failed_outlined, size: 100),
-          Text('불러오지 못했습니다.', style: Theme.of(context).textTheme.headline4),
+          Text(AppLocalizations.of(context)!.loadFailed,
+              style: Theme.of(context).textTheme.headline4),
         ],
         mainAxisAlignment: MainAxisAlignment.center,
       ),
@@ -90,35 +93,52 @@ class MyHomePage extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
+  Future<YamlMap> loadItemInfo() async {
+    String itemInfosRaw = await rootBundle.loadString('lib/item_infos.yaml');
+    return loadYaml(itemInfosRaw);
+  }
+
   @override
   Widget build(BuildContext context) {
-    const String info = '뱀파이어 서바이버에서는 파워업 한 횟수에 따라 10퍼센트의 추가비용이 붙습니다.\n'
-        '때문에 같은 스펙의 파워업을 하더라도 파워업의 순서에 따라 총 비용이 달라집니다.\n'
-        '이 계산기는 하고자 하는 파워업을 입력하면 가장 저렴한 순서를 계산해줍니다.';
+    print(Localizations.localeOf(context));
+
+    const Widget loadFailed = Center(
+      child: SizedBox.square(
+        dimension: 400,
+        child: LoadFailed(),
+      ),
+    );
+
+    const Widget progressIndicator = Center(
+      child: SizedBox.square(
+        dimension: 100,
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    PreferredSizeWidget appBar = AppBar(
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(AppLocalizations.of(context)!.appBarTitle),
+          const SizedBox(width: 5),
+          Tooltip(
+            child: const Icon(Icons.info),
+            richMessage: TextSpan(
+              text: AppLocalizations.of(context)!.calculatorInfo,
+              style: Theme.of(context).textTheme.bodyText2!.apply(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
     LocalStorage storage = LocalStorage('PowerUps');
     Future<String> itemInfosRaw = rootBundle.loadString('lib/item_infos.yaml');
     late YamlMap itemInfos;
     itemInfosRaw.then((value) => itemInfos = loadYaml(value));
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('뱀파이어 서바이버 파워업 순서 계산기'),
-            const SizedBox(width: 5),
-            Tooltip(
-              child: const Icon(Icons.info),
-              richMessage: TextSpan(
-                text: info,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyText2!
-                    .apply(color: Colors.white),
-              ),
-            ),
-          ],
-        ),
-      ),
+      appBar: appBar,
       body: FutureBuilder(
         future: Future.wait([
           storage.ready,
@@ -131,36 +151,20 @@ class MyHomePage extends StatelessWidget {
                 ChangeNotifierProvider<PowerUpLocalStorage>(
                     create: (_) => PowerUpLocalStorage(storage, itemInfos)),
                 ChangeNotifierProxyProvider<PowerUpLocalStorage, PowerUpPool>(
-                    create: (context) =>
-                        PowerUpPool(context.read<PowerUpLocalStorage>()),
-                    update: (context, powerUpLocalStorage, _) =>
-                        PowerUpPool(powerUpLocalStorage)),
+                    create: (context) => PowerUpPool(context.read<PowerUpLocalStorage>()),
+                    update: (context, powerUpLocalStorage, _) => PowerUpPool(powerUpLocalStorage)),
                 ChangeNotifierProxyProvider<PowerUpPool, PowerUpCalculator>(
-                  create: (context) =>
-                      PowerUpCalculator(context.read<PowerUpPool>()),
-                  update: (context, powerUpPool, _) =>
-                      PowerUpCalculator(powerUpPool),
+                  create: (context) => PowerUpCalculator(context.read<PowerUpPool>()),
+                  update: (context, powerUpPool, _) => PowerUpCalculator(powerUpPool),
                 ),
               ],
               child: const PowerUpPage(),
             );
           }
           if (snapshot.hasError) {
-            return const Center(
-              child: SizedBox(
-                width: 400,
-                height: 400,
-                child: LoadFailed(),
-              ),
-            );
+            return loadFailed;
           }
-          return const Center(
-            child: SizedBox(
-              width: 100,
-              height: 100,
-              child: CircularProgressIndicator(),
-            ),
-          );
+          return progressIndicator;
         },
       ),
     );

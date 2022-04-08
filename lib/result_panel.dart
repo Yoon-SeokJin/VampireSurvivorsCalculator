@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'power_up_local_storage.dart';
 import 'power_up_pool.dart';
 import 'power_up_calculator.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ResultPanel extends StatelessWidget {
   const ResultPanel({Key? key}) : super(key: key);
@@ -10,7 +11,7 @@ class ResultPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     List<Result> results = context.watch<PowerUpCalculator>().getResult;
-
+    var itemInfos = context.watch<PowerUpLocalStorage>().itemInfos;
     late Widget displayResult;
 
     if (context.watch<PowerUpPool>().showDetail) {
@@ -20,13 +21,24 @@ class ResultPanel extends StatelessWidget {
           child: SingleChildScrollView(
             controller: ScrollController(),
             child: DataTable(
-              columns: const [
-                DataColumn(label: Text('순서'), numeric: true),
-                DataColumn(label: Text('아이콘')),
-                DataColumn(label: Text('레벨'), numeric: true),
-                DataColumn(label: Text('이름')),
-                DataColumn(label: Text('비용'), numeric: true),
-                DataColumn(label: Text('누적'), numeric: true),
+              columns: [
+                DataColumn(
+                    label: Text(AppLocalizations.of(context)!.dataTableOrder),
+                    numeric: true),
+                DataColumn(
+                    label: Text(AppLocalizations.of(context)!.dataTableIcon)),
+                DataColumn(
+                    label: Text(AppLocalizations.of(context)!.dataTableLevel),
+                    numeric: true),
+                DataColumn(
+                    label: Text(AppLocalizations.of(context)!.dataTableName)),
+                DataColumn(
+                    label: Text(AppLocalizations.of(context)!.dataTableCost),
+                    numeric: true),
+                DataColumn(
+                    label:
+                        Text(AppLocalizations.of(context)!.dataTableAccumulate),
+                    numeric: true),
               ],
               rows: [
                 for (Result result in results)
@@ -59,7 +71,11 @@ class ResultPanel extends StatelessWidget {
                             style: Theme.of(context).textTheme.headline6),
                       ),
                       DataCell(
-                        Text(result.name,
+                        Text(
+                            itemInfos[result.name] is ItemInfo
+                                ? AppLocalizations.of(context)!.powerUpName(
+                                    (itemInfos[result.name] as ItemInfo).id)
+                                : result.name,
                             style: Theme.of(context).textTheme.headline6),
                       ),
                       DataCell(
@@ -108,11 +124,12 @@ class ResultPanel extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
-                  '총 비용: ${results.isNotEmpty ? results.last.costAccumulate : 0}',
+                  AppLocalizations.of(context)!.totalCost +
+                      ': ${results.isNotEmpty ? results.last.costAccumulate : 0}',
                   style: Theme.of(context).textTheme.headline5),
             ),
             const Spacer(),
-            const Text('자세히'),
+            Text(AppLocalizations.of(context)!.details),
             Switch(
               value: context.watch<PowerUpPool>().showDetail,
               onChanged: (bool newValue) {

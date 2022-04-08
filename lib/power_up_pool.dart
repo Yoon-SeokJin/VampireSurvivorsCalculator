@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'power_up_local_storage.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PowerUpPool with ChangeNotifier {
   final PowerUpLocalStorage powerUpLocalStorage;
@@ -57,8 +58,12 @@ class PowerUpPool with ChangeNotifier {
 
   double getTextWidthMax(BuildContext context) {
     String keys = '';
-    for (String key in powerUpLocalStorage.itemInfos.keys) {
-      keys += key + '\n';
+    for (var itemInfo in powerUpLocalStorage.itemInfos.entries) {
+      var value = itemInfo.value;
+      String name = value is ItemInfo
+          ? AppLocalizations.of(context)!.powerUpName(value.id)
+          : itemInfo.key;
+      keys += name + '\n';
     }
     final richTextWidget = Text.rich(
             TextSpan(text: keys, style: Theme.of(context).textTheme.headline6))

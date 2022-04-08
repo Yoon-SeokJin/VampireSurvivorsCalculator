@@ -4,24 +4,54 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'power_up_local_storage.dart';
 import 'power_up_pool.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ItemSliderList extends StatelessWidget {
   const ItemSliderList({
     Key? key,
   }) : super(key: key);
 
+  TableRow _buildItemSliderTile(
+      {required BuildContext context,
+      required String itemName,
+      bool removable = true}) {
+    SliderComponentShape trackShape =
+        SliderTheme.of(context).overlayShape ?? const RoundSliderOverlayShape();
+    Size iconSize = trackShape.getPreferredSize(true, true);
+    var itemInfo = context.watch<PowerUpLocalStorage>().itemInfos[itemName]!;
+    String name = itemInfo is ItemInfo
+        ? AppLocalizations.of(context)!.powerUpName(itemInfo.id)
+        : itemName;
+    print(iconSize);
+    return TableRow(
+      children: [
+        SizedBox.fromSize(
+          size: iconSize,
+          child: itemInfo.figure,
+        ),
+        Text(name, style: Theme.of(context).textTheme.headline6),
+        NewWidget(itemInfo: itemInfo, itemName: itemName),
+        if (removable)
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () =>
+                context.read<PowerUpPool>().removeExtraPowerUp(itemName),
+          ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     var powerUpPool = context.read<PowerUpPool>();
-    double titleWidth = powerUpPool.getTextWidthMax(context);
-    List<Widget> itemSliderTileList = [];
+    List<TableRow> itemSliderTileList = [];
     var basicItemList = context.watch<PowerUpLocalStorage>().itemInfosRaw.keys;
     context.watch<PowerUpLocalStorage>().itemInfos.forEach(
       (key, value) {
         itemSliderTileList.add(
-          ItemSliderTile(
+          _buildItemSliderTile(
+            context: context,
             itemName: key,
-            titleWidth: titleWidth,
             removable: !basicItemList.contains(key),
           ),
         );
@@ -34,13 +64,14 @@ class ItemSliderList extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text('뱀파이어 서바이버 0.4.1 기준 (22.04.05.)'),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(AppLocalizations.of(context)!
+                  .versionInfo('0.4.1', '22.04.07.')),
             ),
             const Spacer(),
             ElevatedButton(
-              child: const Text('최소'),
+              child: Text(AppLocalizations.of(context)!.min),
               onPressed: () {
                 powerUpPool.setMinAll();
                 powerUpPool.saveSliderValue();
@@ -49,7 +80,7 @@ class ItemSliderList extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(
-                child: const Text('최대'),
+                child: Text(AppLocalizations.of(context)!.max),
                 onPressed: () {
                   powerUpPool.setMaxAll();
                   powerUpPool.saveSliderValue();
@@ -59,9 +90,16 @@ class ItemSliderList extends StatelessWidget {
           ],
         ),
         Expanded(
-          child: ListView(
+          child: SingleChildScrollView(
             controller: _scrollController,
-            children: itemSliderTileList,
+            child: Table(
+              columnWidths: {
+                0: IntrinsicColumnWidth(),
+                1: IntrinsicColumnWidth(),
+              },
+              children: itemSliderTileList,
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            ),
           ),
         ),
         SizedBox(
@@ -82,53 +120,28 @@ class ItemSliderList extends StatelessWidget {
   }
 }
 
-class ItemSliderTile extends StatelessWidget {
-  const ItemSliderTile(
-      {Key? key,
-      required this.itemName,
-      required this.titleWidth,
-      this.removable = false})
-      : super(key: key);
+class NewWidget extends StatelessWidget {
+  const NewWidget({
+    Key? key,
+    required this.itemInfo,
+    required this.itemName,
+  }) : super(key: key);
+
+  final ItemInfoBase itemInfo;
   final String itemName;
-  final double titleWidth;
-  final bool removable;
 
   @override
   Widget build(BuildContext context) {
-    SliderComponentShape trackShape =
-        SliderTheme.of(context).overlayShape ?? const RoundSliderOverlayShape();
-    Size iconSize = trackShape.getPreferredSize(true, true);
-    var itemInfo = context.watch<PowerUpLocalStorage>().itemInfos[itemName]!;
-    return Row(
-      children: [
-        SizedBox.fromSize(
-          size: iconSize,
-          child: itemInfo.figure,
-        ),
-        const SizedBox(width: 8.0),
-        SizedBox(
-          width: titleWidth,
-          child: Text(itemName, style: Theme.of(context).textTheme.headline6),
-        ),
-        Expanded(
-          child: EvenlyDividedSlider(
-            value: context
-                .select<PowerUpPool, int>((value) => value.powerUps[itemName]!),
-            max: itemInfo.maxLevel,
-            divisions: max(5, itemInfo.maxLevel),
-            onChanged: (value) =>
-                context.read<PowerUpPool>().setValue(itemName, value),
-            onChangedEnd: (value) =>
-                context.read<PowerUpPool>().saveSliderValue(),
-          ),
-        ),
-        if (removable)
-          IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: () =>
-                context.read<PowerUpPool>().removeExtraPowerUp(itemName),
-          )
-      ],
+    print("rebuild");
+
+    return EvenlyDividedSlider(
+      value: context
+          .select<PowerUpPool, int>((value) => value.powerUps[itemName]!),
+      max: itemInfo.maxLevel,
+      divisions: max(5, itemInfo.maxLevel),
+      onChanged: (value) =>
+          context.read<PowerUpPool>().setValue(itemName, value),
+      onChangedEnd: (value) => context.read<PowerUpPool>().saveSliderValue(),
     );
   }
 }
@@ -213,11 +226,12 @@ class _AddPowerUpDialogState extends State<AddPowerUpDialog> {
       ++extraNum;
     }
     return AlertDialog(
-      title: const Text('파워업 추가'),
+      title: Text(AppLocalizations.of(context)!.addCustomPowerUpTitle),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Flexible(child: Text('찾는 파워업이 없는 경우 직접 추가하여 계산할 수 있습니다.')),
+          Flexible(
+              child: Text(AppLocalizations.of(context)!.addCustomPowerUpInfo)),
           Flexible(
             child: Form(
               key: formKey,
@@ -226,20 +240,23 @@ class _AddPowerUpDialogState extends State<AddPowerUpDialog> {
                 children: [
                   Flexible(
                     child: TextFormField(
-                      decoration: const InputDecoration(
-                        icon: Icon(Icons.abc),
-                        labelText: '파워업 이름',
+                      decoration: InputDecoration(
+                        icon: const Icon(Icons.abc),
+                        labelText:
+                            AppLocalizations.of(context)!.addCustomPowerUpName,
                       ),
                       initialValue: 'Extra' + extraNum.toString(),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return '이름을 입력하세요.';
+                          return AppLocalizations.of(context)!
+                              .addCustomPowerUpInputName;
                         }
                         if (widget.ancestorContext
                                 .read<PowerUpLocalStorage>()
                                 .itemInfos[value] !=
                             null) {
-                          return '이미 사용 중입니다.';
+                          return AppLocalizations.of(context)!
+                              .addCustomPowerUpOccupied;
                         }
                         return null;
                       },
@@ -250,19 +267,24 @@ class _AddPowerUpDialogState extends State<AddPowerUpDialog> {
                   ),
                   Flexible(
                     child: TextFormField(
-                      decoration: const InputDecoration(
-                        icon: Icon(Icons.attach_money),
-                        hintText: '모든 파워업을 환불한 기준 가격',
-                        labelText: '파워업 가격 *',
+                      decoration: InputDecoration(
+                        icon: const Icon(Icons.attach_money),
+                        hintText: AppLocalizations.of(context)!
+                            .addCustomPowerUpPriceHint,
+                        labelText: AppLocalizations.of(context)!
+                                .addCustomPowerUpPrice +
+                            ' *',
                       ),
                       controller: TextEditingController(),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return '값을 입력하세요.';
+                          return AppLocalizations.of(context)!
+                              .addCustomPowerUpValidInputValue;
                         }
                         int? num = int.tryParse(value, radix: 10);
                         if (num == null || num <= 0) {
-                          return '0보다 큰 수를 입력하세요.';
+                          return AppLocalizations.of(context)!
+                              .addCustomPowerUpValidPositive;
                         }
                         return null;
                       },
@@ -273,18 +295,22 @@ class _AddPowerUpDialogState extends State<AddPowerUpDialog> {
                   ),
                   Flexible(
                     child: TextFormField(
-                      decoration: const InputDecoration(
-                        icon: Icon(Icons.upgrade),
-                        labelText: '최대 레벨 *',
+                      decoration: InputDecoration(
+                        icon: const Icon(Icons.upgrade),
+                        labelText: AppLocalizations.of(context)!
+                                .addCustomPowerUpMaxLevel +
+                            ' *',
                       ),
                       controller: TextEditingController(),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return '값을 입력하세요.';
+                          return AppLocalizations.of(context)!
+                              .addCustomPowerUpValidInputValue;
                         }
                         int? num = int.tryParse(value, radix: 10);
                         if (num == null || num <= 0) {
-                          return '0보다 큰 수를 입력하세요.';
+                          return AppLocalizations.of(context)!
+                              .addCustomPowerUpValidPositive;
                         }
                         return null;
                       },
@@ -304,7 +330,7 @@ class _AddPowerUpDialogState extends State<AddPowerUpDialog> {
           onPressed: () {
             Navigator.pop(context);
           },
-          child: const Text('취소'),
+          child: Text(AppLocalizations.of(context)!.addCustomPowerUpCancel),
         ),
         TextButton(
           onPressed: () {
@@ -325,7 +351,7 @@ class _AddPowerUpDialogState extends State<AddPowerUpDialog> {
               Navigator.pop(context);
             }
           },
-          child: const Text('추가'),
+          child: Text(AppLocalizations.of(context)!.addCustomPowerUpAdd),
         ),
       ],
     );

@@ -1,19 +1,19 @@
-'Might': {price: 200, maxLevel: 5, imagePath: 'images/Might.png',}
-'Armor': {price: 600, maxLevel: 3, imagePath: 'images/Armor.png',}
-'Max health': {price: 200, maxLevel: 3, imagePath: 'images/MaxHealth.png',}
-'Recovery': {price: 200, maxLevel: 5, imagePath: 'images/Recovery.png',}
-'Cool down': {price: 900, maxLevel: 2, imagePath: 'images/CoolDown.png',}
-'Area': {price: 300, maxLevel: 2, imagePath: 'images/Area.png',}
-'Speed': {price: 300, maxLevel: 2, imagePath: 'images/Speed.png',}
-'Duration': {price: 300, maxLevel: 2, imagePath: 'images/Duration.png',}
-'Amount': {price: 5000, maxLevel: 1, imagePath: 'images/Amount.png',}
-'Move speed': {price: 300, maxLevel: 2, imagePath: 'images/MoveSpeed.png',}
-'Magnet': {price: 300, maxLevel: 2, imagePath: 'images/Magnet.png',}
-'Luck': {price: 600, maxLevel: 3, imagePath: 'images/Luck.png',}
-'Growth': {price: 900, maxLevel: 5, imagePath: 'images/Growth.png',}
-'Greed': {price: 200, maxLevel: 5, imagePath: 'images/Greed.png',}
-'Curse': {price: 1666, maxLevel: 5, imagePath: 'images/Curse.png',}
-'Revival': {price: 10000, maxLevel: 1, imagePath: 'images/Revival.png',}
-'Reroll': {price: 5000, maxLevel: 3, imagePath: 'images/Reroll.png',}
-'Skip': {price: 200, maxLevel: 2, imagePath: 'images/Skip.png',}
-'Banish': {price: 200, maxLevel: 2, imagePath: 'images/Banish.png',}
+'Might': {price: 200, maxLevel: 5, imagePath: 'images/Might.png', id: 'might'}
+'Armor': {price: 600, maxLevel: 3, imagePath: 'images/Armor.png', id: 'armor'}
+'Max health': {price: 200, maxLevel: 3, imagePath: 'images/MaxHealth.png', id: 'maxHealth'}
+'Recovery': {price: 200, maxLevel: 5, imagePath: 'images/Recovery.png', id: 'recovery'}
+'Cool down': {price: 900, maxLevel: 2, imagePath: 'images/CoolDown.png', id: 'coolDown'}
+'Area': {price: 300, maxLevel: 2, imagePath: 'images/Area.png', id: 'area'}
+'Speed': {price: 300, maxLevel: 2, imagePath: 'images/Speed.png', id: 'speed'}
+'Duration': {price: 300, maxLevel: 2, imagePath: 'images/Duration.png', id: 'duration'}
+'Amount': {price: 5000, maxLevel: 1, imagePath: 'images/Amount.png', id: 'amount'}
+'Move speed': {price: 300, maxLevel: 2, imagePath: 'images/MoveSpeed.png', id: 'moveSpeed'}
+'Magnet': {price: 300, maxLevel: 2, imagePath: 'images/Magnet.png', id: 'magnet'}
+'Luck': {price: 600, maxLevel: 3, imagePath: 'images/Luck.png', id: 'luck'}
+'Growth': {price: 900, maxLevel: 5, imagePath: 'images/Growth.png', id: 'growth'}
+'Greed': {price: 200, maxLevel: 5, imagePath: 'images/Greed.png', id: 'greed'}
+'Curse': {price: 1666, maxLevel: 5, imagePath: 'images/Curse.png', id: 'curse'}
+'Revival': {price: 10000, maxLevel: 1, imagePath: 'images/Revival.png', id: 'revival'}
+'Reroll': {price: 5000, maxLevel: 3, imagePath: 'images/Reroll.png', id: 'reroll'}
+'Skip': {price: 200, maxLevel: 2, imagePath: 'images/Skip.png', id: 'skip'}
+'Banish': {price: 200, maxLevel: 2, imagePath: 'images/Banish.png', id: 'banish'}

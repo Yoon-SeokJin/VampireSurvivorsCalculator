@@ -1,0 +1,50 @@
+{
+    "@@locale": "ko",
+
+    "appBarTitle": "뱀파이어 서바이버 파워업 순서 계산기",
+    "loadFailed": "불러오지 못했습니다.",
+    "calculatorInfo": "뱀파이어 서바이버에서는 파워업 한 횟수에 따라 10퍼센트의 추가비용이 붙습니다.\n때문에 같은 스펙의 파워업을 하더라도 파워업의 순서에 따라 총 비용이 달라집니다.\n이 계산기는 하고자 하는 파워업을 입력하면 가장 저렴한 순서를 계산해줍니다.",
+    "versionInfo": "뱀파이어 서바이버 {version} 기준 ({date})",
+    "@versionInfo": {
+        "placeholders": {
+            "version": {
+                "type": "String",
+                "example": "0.4.1"
+            },
+            "date": {
+                "type": "String",
+                "example": "22.04.05."
+            }
+        }
+    },
+    "min": "최소",
+    "max": "최대",
+    "powerUpName": "{id, select, might{괴력} armor{방어력} maxHealth{최대 체력} recovery{회복} coolDown{쿨타임} area{공격범위} speed{투사체 속도} duration{지속시간} amount{투사체 수} moveSpeed{이동속도} magnet{자석} luck{행운} growth{성장} greed{탐욕} curse{저주} revival{부활} reroll{새로고침} skip{건너뛰기} banish{지우기}}",
+    "@powerUpName": {
+        "placeholders": {
+            "id": {
+                "type": "String"
+            }
+        }
+    },
+    "addCustomPowerUpTitle": "파워업 추가",
+    "addCustomPowerUpInfo": "찾는 파워업이 없는 경우 직접 추가하여 계산할 수 있습니다.",
+    "addCustomPowerUpName": "파워업 이름",
+    "addCustomPowerUpCancel": "취소",
+    "addCustomPowerUpAdd": "추가",
+    "addCustomPowerUpInputName": "이름을 입력하세요.",
+    "addCustomPowerUpOccupied": "이미 사용 중입니다.",
+    "addCustomPowerUpPrice": "파워업 가격",
+    "addCustomPowerUpPriceHint": "모든 파워업을 환불한 기준 가격",
+    "addCustomPowerUpValidInputValue": "값을 입력하세요.",
+    "addCustomPowerUpValidPositive": "0보다 큰 수를 입력하세요.",
+    "addCustomPowerUpMaxLevel": "최대 레벨",
+    "dataTableOrder": "순서",
+    "dataTableIcon": "아이콘",
+    "dataTableLevel": "레벨",
+    "dataTableName": "이름",
+    "dataTableCost": "비용",
+    "dataTableAccumulate": "누적",
+    "totalCost": "총 비용",
+    "details": "자세히"
+}

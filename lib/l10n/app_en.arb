@@ -1,0 +1,50 @@
+{
+    "@@locale": "en",
+
+    "appBarTitle": "Vampire Survivors Power Up Order Calculator",
+    "loadFailed": "Load failed.",
+    "calculatorInfo": "In Vampire Survivors, an additional cost of 10% is added depending on the number of power-ups.\nSo even if you use power-ups with the same spec, the total cost will vary according to the order of power-ups.\nThis calculator calculates the power-ups you want. Enter it and it will calculate the cheapest order.",
+    "versionInfo": "Based on Vampire Survivors {version} ({date})",
+    "@versionInfo": {
+        "placeholders": {
+            "version": {
+                "type": "String",
+                "example": "0.4.1"
+            },
+            "date": {
+                "type": "String",
+                "example": "22.04.05."
+            }
+        }
+    },
+    "min": "min",
+    "max": "max",
+    "powerUpName": "{id, select, might{Might} armor{Armor} maxHealth{Max Health} recovery{Recovery} coolDown{Cooldown} area{Area} speed{Speed} duration{Duration} amount{Amount} moveSpeed{Move speed} magnet{Magnet} luck{Luck} growth{Growth} greed{Greed} curse{Curse} revival{Revival} reroll{Reroll} skip{Skip} banish{Banish}}",
+    "@powerUpName": {
+        "placeholders": {
+            "id": {
+                "type": "String"
+            }
+        }
+    },
+    "addCustomPowerUpTitle": "Add Power Up",
+    "addCustomPowerUpInfo": "If you can't find power up you want, manually add.",
+    "addCustomPowerUpName": "Power up name",
+    "addCustomPowerUpCancel": "Cancel",
+    "addCustomPowerUpAdd": "Add",
+    "addCustomPowerUpInputName": "Input name.",
+    "addCustomPowerUpOccupied": "Already occupied",
+    "addCustomPowerUpPrice": "Power up price",
+    "addCustomPowerUpPriceHint": "Price when refund all of power ups.",
+    "addCustomPowerUpValidInputValue": "Input value.",
+    "addCustomPowerUpValidPositive": "Input the number larger than zero.",
+    "addCustomPowerUpMaxLevel": "Max Level",
+    "dataTableOrder": "Order",
+    "dataTableIcon": "Icon",
+    "dataTableLevel": "Lv.",
+    "dataTableName": "Name",
+    "dataTableCost": "Cost",
+    "dataTableAccumulate": "Acc.",
+    "totalCost": "Total cost",
+    "details": "details"
+}
