@@ -4,6 +4,20 @@
     "appBarTitle": "Vampire Survivors Power Up Order Calculator",
     "loadFailed": "Load failed.",
     "calculatorInfo": "In Vampire Survivors, an additional cost of 10% is added depending on the number of power-ups.\nSo even if you use power-ups with the same spec, the total cost will vary according to the order of power-ups.\nThis calculator calculates the power-ups you want. Enter it and it will calculate the cheapest order.",
+    "dateFormat": "{day}.{month}.{year}.",
+    "@dateFormat": {
+        "placeholders": {
+            "day": {
+                "type": "int"
+            },
+            "month": {
+                "type": "int"
+            },
+            "year": {
+                "type": "int"
+            }
+        }
+    },
     "versionInfo": "Based on Vampire Survivors {version} ({date})",
     "@versionInfo": {
         "placeholders": {
@@ -19,7 +33,7 @@
     },
     "min": "min",
     "max": "max",
-    "powerUpName": "{id, select, might{Might} armor{Armor} maxHealth{Max Health} recovery{Recovery} coolDown{Cooldown} area{Area} speed{Speed} duration{Duration} amount{Amount} moveSpeed{Move speed} magnet{Magnet} luck{Luck} growth{Growth} greed{Greed} curse{Curse} revival{Revival} reroll{Reroll} skip{Skip} banish{Banish}}",
+    "powerUpName": "{id, select, might{Might} armor{Armor} maxHealth{Max Health} recovery{Recovery} coolDown{Cooldown} area{Area} speed{Speed} duration{Duration} amount{Amount} moveSpeed{Move speed} magnet{Magnet} luck{Luck} growth{Growth} greed{Greed} curse{Curse} revival{Revival} reroll{Reroll} skip{Skip} banish{Banish} other{Missing no.}}",
     "@powerUpName": {
         "placeholders": {
             "id": {
@@ -33,7 +47,7 @@
     "addCustomPowerUpCancel": "Cancel",
     "addCustomPowerUpAdd": "Add",
     "addCustomPowerUpInputName": "Input name.",
-    "addCustomPowerUpOccupied": "Already occupied",
+    "addCustomPowerUpTooLong": "Enter up to 10 characters.",
     "addCustomPowerUpPrice": "Power up price",
     "addCustomPowerUpPriceHint": "Price when refund all of power ups.",
     "addCustomPowerUpValidInputValue": "Input value.",

@@ -1,0 +1,6 @@
+{
+    "@@locale": "ru",
+
+    "dateFormat": "{day}.{month}.{year}.",
+    "powerUpName": "{id, select, might{Сила} armor{Броня} maxHealth{Макс. з} recovery{Регенерация} coolDown{Откат} area{Размер} speed{Скорость} duration{Срок} amount{Количество} moveSpeed{Подвижность} magnet{Магнит} luck{Удача} growth{Прирост} greed{Жадность} curse{Проклятье} revival{Оживление} reroll{Повтор} skip{Пропуск} banish{Исключение} other{Missing no.}}"
+}

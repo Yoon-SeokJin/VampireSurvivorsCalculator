@@ -1,95 +1,73 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'power_up_local_storage.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'power_up_pool.dart';
 import 'power_up_calculator.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ResultPanel extends StatelessWidget {
   const ResultPanel({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('result panel rebuilt');
     List<Result> results = context.watch<PowerUpCalculator>().getResult;
-    var itemInfos = context.watch<PowerUpLocalStorage>().itemInfos;
     late Widget displayResult;
-
-    if (context.watch<PowerUpPool>().showDetail) {
-      displayResult = Flexible(
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: SingleChildScrollView(
-            controller: ScrollController(),
-            child: DataTable(
-              columns: [
-                DataColumn(
-                    label: Text(AppLocalizations.of(context)!.dataTableOrder),
-                    numeric: true),
-                DataColumn(
-                    label: Text(AppLocalizations.of(context)!.dataTableIcon)),
-                DataColumn(
-                    label: Text(AppLocalizations.of(context)!.dataTableLevel),
-                    numeric: true),
-                DataColumn(
-                    label: Text(AppLocalizations.of(context)!.dataTableName)),
-                DataColumn(
-                    label: Text(AppLocalizations.of(context)!.dataTableCost),
-                    numeric: true),
-                DataColumn(
-                    label:
-                        Text(AppLocalizations.of(context)!.dataTableAccumulate),
-                    numeric: true),
-              ],
-              rows: [
-                for (Result result in results)
-                  DataRow(
-                    cells: [
-                      DataCell(
-                        Text((result.order ?? '').toString(),
-                            style: Theme.of(context).textTheme.headline6),
-                      ),
-                      DataCell(
-                        SizedBox(
-                          width:
-                              Theme.of(context).dataTableTheme.dataRowHeight ??
-                                  kMinInteractiveDimension,
-                          height:
-                              Theme.of(context).dataTableTheme.dataRowHeight ??
-                                  kMinInteractiveDimension,
-                          child: context
-                              .watch<PowerUpLocalStorage>()
-                              .itemInfos[result.name]!
-                              .figure,
-                        ),
-                      ),
-                      DataCell(
-                        Text(
-                            context
-                                .watch<PowerUpPool>()
-                                .powerUps[result.name]!
-                                .toString(),
-                            style: Theme.of(context).textTheme.headline6),
-                      ),
-                      DataCell(
-                        Text(
-                            itemInfos[result.name] is ItemInfo
-                                ? AppLocalizations.of(context)!.powerUpName(
-                                    (itemInfos[result.name] as ItemInfo).id)
-                                : result.name,
-                            style: Theme.of(context).textTheme.headline6),
-                      ),
-                      DataCell(
-                        Text(result.cost.toString(),
-                            style: Theme.of(context).textTheme.headline6),
-                      ),
-                      DataCell(
-                        Text(result.costAccumulate.toString(),
-                            style: Theme.of(context).textTheme.headline6),
-                      ),
-                    ],
-                  )
-              ],
-            ),
+    if (context.watch<PowerUpPool>().showDetails) {
+      displayResult = Expanded(
+        child: SingleChildScrollView(
+          controller: ScrollController(),
+          child: Table(
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            columnWidths: const {
+              0: IntrinsicColumnWidth(),
+              1: IntrinsicColumnWidth(),
+              2: IntrinsicColumnWidth(),
+            },
+            children: [
+              TableRow(
+                children: [
+                  Text(AppLocalizations.of(context)!.dataTableOrder),
+                  Text(AppLocalizations.of(context)!.dataTableIcon),
+                  Text(AppLocalizations.of(context)!.dataTableLevel),
+                  Text(AppLocalizations.of(context)!.dataTableName),
+                  Text(AppLocalizations.of(context)!.dataTableCost),
+                  Text(AppLocalizations.of(context)!.dataTableAccumulate),
+                ]
+                    .map((e) => Padding(
+                          child: e,
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        ))
+                    .toList(),
+              ),
+              for (Result result in results)
+                TableRow(
+                  decoration: BoxDecoration(
+                      border: Border(
+                          top: BorderSide(
+                              width: 0.5,
+                              style: result.order != null ? BorderStyle.solid : BorderStyle.none))),
+                  children: [
+                    Text((result.order ?? '').toString(),
+                        style: Theme.of(context).textTheme.headline6),
+                    SizedBox.square(
+                      dimension: 48.0,
+                      child: result.itemInfo.figure,
+                    ),
+                    Text(context.watch<PowerUpPool>().powerUps[result.itemInfo.id]!.toString(),
+                        style: Theme.of(context).textTheme.headline6),
+                    Text(result.itemInfo.getName(context),
+                        style: Theme.of(context).textTheme.headline6),
+                    Text(result.cost.toString(), style: Theme.of(context).textTheme.headline6),
+                    Text(result.costAccumulate.toString(),
+                        style: Theme.of(context).textTheme.headline6),
+                  ]
+                      .map((e) => Padding(
+                            child: e,
+                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          ))
+                      .toList(),
+                ),
+            ],
           ),
         ),
       );
@@ -102,11 +80,8 @@ class ResultPanel extends StatelessWidget {
             children: [
               for (Result result in results)
                 ItemInfoIcon(
-                  figure: context
-                      .watch<PowerUpLocalStorage>()
-                      .itemInfos[result.name]!
-                      .figure,
-                  level: context.watch<PowerUpPool>().powerUps[result.name]!,
+                  figure: result.itemInfo.figure,
+                  level: context.watch<PowerUpPool>().powerUps[result.itemInfo.id]!,
                   order: result.order,
                 ),
             ],
@@ -131,9 +106,9 @@ class ResultPanel extends StatelessWidget {
             const Spacer(),
             Text(AppLocalizations.of(context)!.details),
             Switch(
-              value: context.watch<PowerUpPool>().showDetail,
+              value: context.watch<PowerUpPool>().showDetails,
               onChanged: (bool newValue) {
-                context.read<PowerUpPool>().showDetail = newValue;
+                context.read<PowerUpPool>().showDetails = newValue;
               },
             ),
           ],
@@ -178,11 +153,9 @@ class ItemInfoIcon extends StatelessWidget {
         Stack(
           children: [
             SizedBox(
-              width: (Theme.of(context).dataTableTheme.dataRowHeight ??
-                      kMinInteractiveDimension) *
+              width: (Theme.of(context).dataTableTheme.dataRowHeight ?? kMinInteractiveDimension) *
                   1.5,
-              height: (Theme.of(context).dataTableTheme.dataRowHeight ??
-                      kMinInteractiveDimension) *
+              height: (Theme.of(context).dataTableTheme.dataRowHeight ?? kMinInteractiveDimension) *
                   1.5,
               child: figure,
             ),

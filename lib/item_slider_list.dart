@@ -11,55 +11,46 @@ class ItemSliderList extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
-  TableRow _buildItemSliderTile(
-      {required BuildContext context,
-      required String itemName,
-      bool removable = true}) {
-    SliderComponentShape trackShape =
-        SliderTheme.of(context).overlayShape ?? const RoundSliderOverlayShape();
-    Size iconSize = trackShape.getPreferredSize(true, true);
-    var itemInfo = context.watch<PowerUpLocalStorage>().itemInfos[itemName]!;
-    String name = itemInfo is ItemInfo
-        ? AppLocalizations.of(context)!.powerUpName(itemInfo.id)
-        : itemName;
-    print(iconSize);
+  TableRow _buildItemSliderTile({required BuildContext context, required ItemInfo itemInfo}) {
+    String name = itemInfo.getName(context);
     return TableRow(
       children: [
         SizedBox.fromSize(
-          size: iconSize,
+          size: const Size.square(48.0),
           child: itemInfo.figure,
         ),
-        Text(name, style: Theme.of(context).textTheme.headline6),
-        NewWidget(itemInfo: itemInfo, itemName: itemName),
-        if (removable)
+        Padding(
+          child: Text(name, style: Theme.of(context).textTheme.headline6),
+          padding: const EdgeInsets.only(left: 8.0),
+        ),
+        ItemSlider(itemInfo: itemInfo),
+        if (itemInfo is ExtraItemInfo)
           IconButton(
             icon: const Icon(Icons.delete),
-            onPressed: () =>
-                context.read<PowerUpPool>().removeExtraPowerUp(itemName),
-          ),
+            onPressed: () => context.read<PowerUpLocalStorage>().removeExtraItemInfos(itemInfo.id),
+          )
+        else
+          const SizedBox.shrink(),
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('item slider list rebuilt');
     var powerUpPool = context.read<PowerUpPool>();
     List<TableRow> itemSliderTileList = [];
-    var basicItemList = context.watch<PowerUpLocalStorage>().itemInfosRaw.keys;
-    context.watch<PowerUpLocalStorage>().itemInfos.forEach(
-      (key, value) {
-        itemSliderTileList.add(
-          _buildItemSliderTile(
-            context: context,
-            itemName: key,
-            removable: !basicItemList.contains(key),
-          ),
-        );
-      },
-    );
+    var itemInfos = context.watch<PowerUpLocalStorage>().itemInfos;
+    for (var e in itemInfos) {
+      itemSliderTileList.add(
+        _buildItemSliderTile(
+          context: context,
+          itemInfo: e,
+        ),
+      );
+    }
 
     ScrollController _scrollController = ScrollController();
-
     return Column(
       children: [
         Row(
@@ -67,7 +58,7 @@ class ItemSliderList extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(AppLocalizations.of(context)!
-                  .versionInfo('0.4.1', '22.04.07.')),
+                  .versionInfo('0.4.2b', AppLocalizations.of(context)!.dateFormat(12, 4, 2022))),
             ),
             const Spacer(),
             ElevatedButton(
@@ -93,26 +84,25 @@ class ItemSliderList extends StatelessWidget {
           child: SingleChildScrollView(
             controller: _scrollController,
             child: Table(
-              columnWidths: {
+              columnWidths: const {
                 0: IntrinsicColumnWidth(),
                 1: IntrinsicColumnWidth(),
+                3: IntrinsicColumnWidth(),
               },
               children: itemSliderTileList,
               defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             ),
           ),
         ),
-        SizedBox(
-          height: 50,
-          child: FractionallySizedBox(
-            widthFactor: 1,
-            child: OutlinedButton(
-              onPressed: () => showDialog(
-                context: context,
-                builder: (_) => AddPowerUpDialog(ancestorContext: context),
-              ),
-              child: const Icon(Icons.add),
+        ConstrainedBox(
+          constraints: const BoxConstraints.expand(height: 32.0),
+          child: OutlinedButton(
+            onPressed: () => showDialog(
+              context: context,
+              builder: (_) => AddPowerUpDialog(
+                  addExtraInfoCallBack: context.read<PowerUpLocalStorage>().addExtraItemInfos),
             ),
+            child: const Icon(Icons.add),
           ),
         ),
       ],
@@ -120,27 +110,22 @@ class ItemSliderList extends StatelessWidget {
   }
 }
 
-class NewWidget extends StatelessWidget {
-  const NewWidget({
+class ItemSlider extends StatelessWidget {
+  const ItemSlider({
     Key? key,
     required this.itemInfo,
-    required this.itemName,
   }) : super(key: key);
 
-  final ItemInfoBase itemInfo;
-  final String itemName;
+  final ItemInfo itemInfo;
 
   @override
   Widget build(BuildContext context) {
-    print("rebuild");
-
+    debugPrint(itemInfo.id);
     return EvenlyDividedSlider(
-      value: context
-          .select<PowerUpPool, int>((value) => value.powerUps[itemName]!),
+      value: context.select<PowerUpPool, int?>((value) => value.powerUps[itemInfo.id])!,
       max: itemInfo.maxLevel,
       divisions: max(5, itemInfo.maxLevel),
-      onChanged: (value) =>
-          context.read<PowerUpPool>().setValue(itemName, value),
+      onChanged: (value) => context.read<PowerUpPool>().setValue(itemInfo.id, value),
       onChangedEnd: (value) => context.read<PowerUpPool>().saveSliderValue(),
     );
   }
@@ -166,26 +151,21 @@ class EvenlyDividedSlider extends StatelessWidget {
   Widget build(BuildContext context) {
     SliderComponentShape trackShape =
         SliderTheme.of(context).overlayShape ?? const RoundSliderOverlayShape();
-    double trackShapeRadiusWidth =
-        trackShape.getPreferredSize(true, true).width;
+    double trackShapeRadiusWidth = trackShape.getPreferredSize(true, true).width;
     return LayoutBuilder(builder: (context, constraints) {
       return Align(
         alignment: Alignment.centerLeft,
         child: SizedBox(
-          width:
-              (constraints.maxWidth - trackShapeRadiusWidth) * max / divisions +
-                  trackShapeRadiusWidth,
+          width: (constraints.maxWidth - trackShapeRadiusWidth) * max / divisions +
+              trackShapeRadiusWidth,
           child: Slider(
             label: value.toString(),
             value: value.toDouble(),
             max: max.toDouble(),
             divisions: max,
-            onChanged: onChanged != null
-                ? (double value) => onChanged!(value.toInt())
-                : null,
-            onChangeEnd: onChangedEnd != null
-                ? (double value) => onChangedEnd!(value.toInt())
-                : null,
+            onChanged: onChanged != null ? (double value) => onChanged!(value.toInt()) : null,
+            onChangeEnd:
+                onChangedEnd != null ? (double value) => onChangedEnd!(value.toInt()) : null,
           ),
         ),
       );
@@ -194,9 +174,8 @@ class EvenlyDividedSlider extends StatelessWidget {
 }
 
 class AddPowerUpDialog extends StatefulWidget {
-  const AddPowerUpDialog({Key? key, required this.ancestorContext})
-      : super(key: key);
-  final BuildContext ancestorContext;
+  const AddPowerUpDialog({Key? key, required this.addExtraInfoCallBack}) : super(key: key);
+  final Function addExtraInfoCallBack;
 
   @override
   State<AddPowerUpDialog> createState() => _AddPowerUpDialogState();
@@ -208,8 +187,7 @@ class _AddPowerUpDialogState extends State<AddPowerUpDialog> {
   int itemPrice = 0;
   int itemMaxLevel = 0;
 
-  @override
-  Widget build(BuildContext context) {
+  int getRandomMaterialIconCodePoint() {
     int randomNumber = Random().nextInt(0x1FD3);
     late int codePoint;
     if (randomNumber < 0x1900) {
@@ -217,21 +195,17 @@ class _AddPowerUpDialogState extends State<AddPowerUpDialog> {
     } else {
       codePoint = 0xf0000 + randomNumber - 0x1900;
     }
-    IconData iconData = IconData(codePoint, fontFamily: 'MaterialIcons');
-    int extraNum = 1;
-    while (widget.ancestorContext
-            .read<PowerUpLocalStorage>()
-            .itemInfos['Extra' + extraNum.toString()] !=
-        null) {
-      ++extraNum;
-    }
+    return codePoint;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(AppLocalizations.of(context)!.addCustomPowerUpTitle),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Flexible(
-              child: Text(AppLocalizations.of(context)!.addCustomPowerUpInfo)),
+          Flexible(child: Text(AppLocalizations.of(context)!.addCustomPowerUpInfo)),
           Flexible(
             child: Form(
               key: formKey,
@@ -242,21 +216,14 @@ class _AddPowerUpDialogState extends State<AddPowerUpDialog> {
                     child: TextFormField(
                       decoration: InputDecoration(
                         icon: const Icon(Icons.abc),
-                        labelText:
-                            AppLocalizations.of(context)!.addCustomPowerUpName,
+                        labelText: AppLocalizations.of(context)!.addCustomPowerUpName,
                       ),
-                      initialValue: 'Extra' + extraNum.toString(),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return AppLocalizations.of(context)!
-                              .addCustomPowerUpInputName;
+                          return AppLocalizations.of(context)!.addCustomPowerUpInputName;
                         }
-                        if (widget.ancestorContext
-                                .read<PowerUpLocalStorage>()
-                                .itemInfos[value] !=
-                            null) {
-                          return AppLocalizations.of(context)!
-                              .addCustomPowerUpOccupied;
+                        if (value.length > 10) {
+                          return AppLocalizations.of(context)!.addCustomPowerUpTooLong;
                         }
                         return null;
                       },
@@ -269,22 +236,17 @@ class _AddPowerUpDialogState extends State<AddPowerUpDialog> {
                     child: TextFormField(
                       decoration: InputDecoration(
                         icon: const Icon(Icons.attach_money),
-                        hintText: AppLocalizations.of(context)!
-                            .addCustomPowerUpPriceHint,
-                        labelText: AppLocalizations.of(context)!
-                                .addCustomPowerUpPrice +
-                            ' *',
+                        hintText: AppLocalizations.of(context)!.addCustomPowerUpPriceHint,
+                        labelText: AppLocalizations.of(context)!.addCustomPowerUpPrice + ' *',
                       ),
                       controller: TextEditingController(),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return AppLocalizations.of(context)!
-                              .addCustomPowerUpValidInputValue;
+                          return AppLocalizations.of(context)!.addCustomPowerUpValidInputValue;
                         }
                         int? num = int.tryParse(value, radix: 10);
                         if (num == null || num <= 0) {
-                          return AppLocalizations.of(context)!
-                              .addCustomPowerUpValidPositive;
+                          return AppLocalizations.of(context)!.addCustomPowerUpValidPositive;
                         }
                         return null;
                       },
@@ -297,20 +259,16 @@ class _AddPowerUpDialogState extends State<AddPowerUpDialog> {
                     child: TextFormField(
                       decoration: InputDecoration(
                         icon: const Icon(Icons.upgrade),
-                        labelText: AppLocalizations.of(context)!
-                                .addCustomPowerUpMaxLevel +
-                            ' *',
+                        labelText: AppLocalizations.of(context)!.addCustomPowerUpMaxLevel + ' *',
                       ),
                       controller: TextEditingController(),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return AppLocalizations.of(context)!
-                              .addCustomPowerUpValidInputValue;
+                          return AppLocalizations.of(context)!.addCustomPowerUpValidInputValue;
                         }
                         int? num = int.tryParse(value, radix: 10);
                         if (num == null || num <= 0) {
-                          return AppLocalizations.of(context)!
-                              .addCustomPowerUpValidPositive;
+                          return AppLocalizations.of(context)!.addCustomPowerUpValidPositive;
                         }
                         return null;
                       },
@@ -337,17 +295,8 @@ class _AddPowerUpDialogState extends State<AddPowerUpDialog> {
             final isValid = formKey.currentState!.validate();
             if (isValid) {
               formKey.currentState!.save();
-              ExtraItemInfo value = ExtraItemInfo(
-                price: itemPrice,
-                maxLevel: itemMaxLevel,
-                icon: iconData,
-              );
-              widget.ancestorContext
-                  .read<PowerUpLocalStorage>()
-                  .addItemInfos(itemName, value);
-              widget.ancestorContext
-                  .read<PowerUpLocalStorage>()
-                  .saveItemInfos();
+              widget.addExtraInfoCallBack(
+                  itemName, itemPrice, itemMaxLevel, getRandomMaterialIconCodePoint());
               Navigator.pop(context);
             }
           },

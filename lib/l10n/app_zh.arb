@@ -1,0 +1,6 @@
+{
+    "@@locale": "zh",
+
+    "dateFormat": "{year}.{month}.{day}.",
+    "powerUpName": "{id, select, might{力量} armor{护甲} maxHealth{最大生命值} recovery{恢复} coolDown{冷却} area{范围} speed{速度} duration{持续时间} amount{数量} moveSpeed{移动速度} magnet{磁铁} luck{幸运} growth{成长} greed{贪婪} curse{诅咒} revival{复活} reroll{重新选择} skip{跳过} banish{放逐} other{Missing no.}}"
+}

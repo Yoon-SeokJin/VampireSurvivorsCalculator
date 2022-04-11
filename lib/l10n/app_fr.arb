@@ -1,0 +1,6 @@
+{
+    "@@locale": "fr",
+
+    "dateFormat": "{day}.{month}.{year}.",
+    "powerUpName": "{id, select, might{Puissance} armor{Armure} maxHealth{Santé max} recovery{Guérison} coolDown{Cooldown} area{Portée} speed{Mouvement} duration{Durée} amount{Quantité} moveSpeed{Vitesse} magnet{Aimant} luck{Chance} growth{Apprendre} greed{Avidité} curse{Malédiction} revival{Relance} reroll{Retenter} skip{Passer} banish{Bannir} other{Missing no.}}"
+}

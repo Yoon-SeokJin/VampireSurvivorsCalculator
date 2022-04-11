@@ -26,64 +26,28 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     const String title = 'vampire survivors calculator';
 
-    const Widget loadFailed = Center(
-      child: SizedBox.square(
-        dimension: 400,
-        child: LoadFailed(),
-      ),
-    );
-
-    const Widget progressIndicator = Center(
-      child: SizedBox.square(
-        dimension: 100,
-        child: CircularProgressIndicator(),
-      ),
-    );
-
     return FutureBuilder(
       future: Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       ),
       builder: (context, snapshot) {
-        Widget home = progressIndicator;
+        Widget? home;
         List<NavigatorObserver> navigatorObservers = [];
         if (snapshot.connectionState == ConnectionState.done) {
           home = const MyHomePage();
           navigatorObservers.add(observer);
           analytics.logAppOpen();
         } else if (snapshot.hasError) {
-          home = loadFailed;
+          home = const LoadFailed(dimension: 400);
         }
         return MaterialApp(
           navigatorObservers: navigatorObservers,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          //locale: const Locale('en'),
           title: title,
-          home: home,
+          home: home ?? const ProgressIndicator(dimension: 100),
         );
       },
-    );
-  }
-}
-
-class LoadFailed extends StatelessWidget {
-  const LoadFailed({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return FittedBox(
-      fit: BoxFit.contain,
-      child: Column(
-        children: [
-          const Icon(Icons.sms_failed_outlined, size: 100),
-          Text(AppLocalizations.of(context)!.loadFailed,
-              style: Theme.of(context).textTheme.headline4),
-        ],
-        mainAxisAlignment: MainAxisAlignment.center,
-      ),
     );
   }
 }
@@ -93,28 +57,9 @@ class MyHomePage extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
-  Future<YamlMap> loadItemInfo() async {
-    String itemInfosRaw = await rootBundle.loadString('lib/item_infos.yaml');
-    return loadYaml(itemInfosRaw);
-  }
-
   @override
   Widget build(BuildContext context) {
-    print(Localizations.localeOf(context));
-
-    const Widget loadFailed = Center(
-      child: SizedBox.square(
-        dimension: 400,
-        child: LoadFailed(),
-      ),
-    );
-
-    const Widget progressIndicator = Center(
-      child: SizedBox.square(
-        dimension: 100,
-        child: CircularProgressIndicator(),
-      ),
-    );
+    debugPrint(Localizations.localeOf(context).toString());
 
     PreferredSizeWidget appBar = AppBar(
       title: Row(
@@ -134,15 +79,15 @@ class MyHomePage extends StatelessWidget {
     );
 
     LocalStorage storage = LocalStorage('PowerUps');
-    Future<String> itemInfosRaw = rootBundle.loadString('lib/item_infos.yaml');
-    late YamlMap itemInfos;
-    itemInfosRaw.then((value) => itemInfos = loadYaml(value));
+    Future<String> itemInfosYaml = rootBundle.loadString('lib/item_infos.yaml');
+    late YamlList itemInfos;
+    itemInfosYaml.then((value) => itemInfos = loadYaml(value));
     return Scaffold(
       appBar: appBar,
       body: FutureBuilder(
         future: Future.wait([
           storage.ready,
-          itemInfosRaw,
+          itemInfosYaml,
         ]),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
@@ -162,10 +107,55 @@ class MyHomePage extends StatelessWidget {
             );
           }
           if (snapshot.hasError) {
-            return loadFailed;
+            return const LoadFailed(dimension: 400);
           }
-          return progressIndicator;
+          return const ProgressIndicator(dimension: 100);
         },
+      ),
+    );
+  }
+}
+
+class LoadFailed extends StatelessWidget {
+  const LoadFailed({Key? key, this.dimension}) : super(key: key);
+
+  final double? dimension;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SizedBox.square(
+        dimension: dimension,
+        child: FittedBox(
+          fit: BoxFit.contain,
+          child: Column(
+            children: [
+              const Icon(Icons.sms_failed_outlined, size: 100),
+              Text(AppLocalizations.of(context)!.loadFailed,
+                  style: Theme.of(context).textTheme.headline4),
+            ],
+            mainAxisAlignment: MainAxisAlignment.center,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ProgressIndicator extends StatelessWidget {
+  const ProgressIndicator({
+    Key? key,
+    this.dimension,
+  }) : super(key: key);
+
+  final double? dimension;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SizedBox.square(
+        dimension: dimension,
+        child: const CircularProgressIndicator(),
       ),
     );
   }

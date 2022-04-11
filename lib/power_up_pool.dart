@@ -1,75 +1,41 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'power_up_local_storage.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PowerUpPool with ChangeNotifier {
   final PowerUpLocalStorage powerUpLocalStorage;
-  Map<String, int> powerUps = {};
   PowerUpPool(this.powerUpLocalStorage) {
-    var values = powerUpLocalStorage.sliderValues;
-    for (String key in powerUpLocalStorage.itemInfos.keys) {
-      powerUps[key] =
-          min(values[key]!, powerUpLocalStorage.itemInfos[key]!.maxLevel);
-    }
+    debugPrint('power up pool rebuilt');
+    powerUps = powerUpLocalStorage.sliderValues;
   }
 
-  bool _showDetail = false;
-  bool get showDetail => _showDetail;
-  set showDetail(bool newValue) {
-    _showDetail = newValue;
+  Map<String, int> powerUps = {};
+
+  bool get showDetails => powerUpLocalStorage.showDetails;
+  set showDetails(bool newValue) {
+    powerUpLocalStorage.showDetails = newValue;
     notifyListeners();
   }
 
   void setMinAll() {
-    powerUps.forEach((key, value) {
-      powerUps[key] = 0;
-    });
+    for (var e in powerUpLocalStorage.itemInfos) {
+      powerUps[e.id] = 0;
+    }
     notifyListeners();
   }
 
   void setMaxAll() {
-    powerUps.forEach((key, value) {
-      powerUps[key] = powerUpLocalStorage.itemInfos[key]!.maxLevel;
-    });
+    for (var e in powerUpLocalStorage.itemInfos) {
+      powerUps[e.id] = e.maxLevel;
+    }
     notifyListeners();
   }
 
-  void setValue(String key, int value) {
-    powerUps[key] = value;
+  void setValue(String id, int value) {
+    powerUps[id] = value;
     notifyListeners();
-  }
-
-  void addExtraPowerUp(String key, ItemInfoBase value) {
-    powerUpLocalStorage.addItemInfos(key, value);
-    saveSliderValue();
-  }
-
-  void removeExtraPowerUp(String key) {
-    powerUpLocalStorage.removeItemInfos(key);
-    powerUps.remove(key);
-    saveSliderValue();
   }
 
   void saveSliderValue() {
     powerUpLocalStorage.sliderValues = powerUps;
-  }
-
-  double getTextWidthMax(BuildContext context) {
-    String keys = '';
-    for (var itemInfo in powerUpLocalStorage.itemInfos.entries) {
-      var value = itemInfo.value;
-      String name = value is ItemInfo
-          ? AppLocalizations.of(context)!.powerUpName(value.id)
-          : itemInfo.key;
-      keys += name + '\n';
-    }
-    final richTextWidget = Text.rich(
-            TextSpan(text: keys, style: Theme.of(context).textTheme.headline6))
-        .build(context) as RichText;
-    final renderObject = richTextWidget.createRenderObject(context);
-    renderObject.layout(const BoxConstraints.tightFor());
-    return renderObject.size.width;
   }
 }

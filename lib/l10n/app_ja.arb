@@ -1,0 +1,6 @@
+{
+    "@@locale": "ja",
+
+    "dateFormat": "{year}.{month}.{day}.",
+    "powerUpName": "{id, select, might{威力} armor{アーマー} maxHealth{ライフ上隈} recovery{回復} coolDown{クールダウン} area{エリア} speed{速度} duration{持続時間} amount{量} moveSpeed{移動速度} magnet{磁石} luck{運気} growth{成長の結晶} greed{強欲} curse{呪い} revival{復活} reroll{リロール} skip{スキップ} banish{banish} other{Missing no.}}"
+}

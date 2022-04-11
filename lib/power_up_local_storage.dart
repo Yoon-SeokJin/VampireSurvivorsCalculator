@@ -1,126 +1,167 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:localstorage/localstorage.dart';
 import 'package:yaml/yaml.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-abstract class ItemInfoBase {
-  ItemInfoBase({required this.price, required this.maxLevel});
+abstract class ItemInfo {
+  ItemInfo({required this.id, required this.price, required this.maxLevel});
   final int price;
   final int maxLevel;
+  final String id;
   Widget get figure;
-  Map<String, dynamic> get jsonEncodable;
+  String getName(BuildContext context);
 }
 
-class ItemInfo extends ItemInfoBase {
-  ItemInfo({price, maxLevel, required this.imagePath, required this.id})
-      : super(price: price, maxLevel: maxLevel);
+class BaseItemInfo extends ItemInfo {
+  BaseItemInfo({required id, required price, required maxLevel, required this.imagePath})
+      : super(id: id, price: price, maxLevel: maxLevel);
   final String imagePath;
-  final String id;
+
   @override
   Widget get figure => Image.asset(
         imagePath,
         filterQuality: FilterQuality.none,
         fit: BoxFit.fill,
       );
+
   @override
-  Map<String, dynamic> get jsonEncodable {
-    Map<String, dynamic> result = {
-      'imagePath': imagePath,
-      'price': price,
-      'maxLevel': maxLevel,
-      'id': id,
-    };
-    return result;
+  String getName(BuildContext context) {
+    return AppLocalizations.of(context)!.powerUpName(id);
   }
 }
 
-class ExtraItemInfo extends ItemInfoBase {
-  ExtraItemInfo({price, maxLevel, required this.icon})
-      : super(price: price, maxLevel: maxLevel);
-  IconData icon;
+class ExtraItemInfo extends ItemInfo {
+  ExtraItemInfo(
+      {required id,
+      required price,
+      required maxLevel,
+      required this.materialIconCodePoint,
+      required this.name})
+      : super(id: id, price: price, maxLevel: maxLevel);
+  int materialIconCodePoint;
+  String name;
+
   @override
   Widget get figure => FittedBox(
-        child: Icon(icon),
+        child: Icon(IconData(materialIconCodePoint, fontFamily: 'MaterialIcons')),
         fit: BoxFit.fill,
       );
 
-  @override
   Map<String, dynamic> get jsonEncodable {
     Map<String, dynamic> result = {
-      'icon': icon.codePoint,
+      'id': id,
+      'name': name,
       'price': price,
       'maxLevel': maxLevel,
+      'materialIconCodePoint': materialIconCodePoint,
     };
     return result;
+  }
+
+  @override
+  String getName(BuildContext context) {
+    return name;
   }
 }
 
 class PowerUpLocalStorage with ChangeNotifier {
+  PowerUpLocalStorage(this.storage, YamlList itemInfosYaml) {
+    debugPrint('local storage rebuilt');
+    for (var e in itemInfosYaml) {
+      itemInfos.add(BaseItemInfo(
+        id: e['id'],
+        price: e['price'],
+        maxLevel: e['maxLevel'],
+        imagePath: e['imagePath'],
+      ));
+    }
+    List loadedExtraItemInfos = storage.getItem('powerUpExtraItemInfos') ?? [];
+    for (var e in loadedExtraItemInfos) {
+      itemInfos.add(ExtraItemInfo(
+        id: e['id'],
+        name: e['name'],
+        price: e['price'],
+        maxLevel: e['maxLevel'],
+        materialIconCodePoint: e['materialIconCodePoint'],
+      ));
+      occupiedExtraId.add(_getExtraIdNum(e['id'])!);
+    }
+  }
   final LocalStorage storage;
-  final YamlMap itemInfosRaw;
-  Map<String, ItemInfoBase> itemInfos = {};
-  PowerUpLocalStorage(this.storage, this.itemInfosRaw) {
-    itemInfosRaw.forEach((key, value) {
-      itemInfos[key] = ItemInfo(
-        price: value['price'],
-        maxLevel: value['maxLevel'],
-        imagePath: value['imagePath'],
-        id: value['id'],
-      );
-    });
-    var storedItemInfos =
-        Map.from(storage.getItem('powerUpStoredItemInfos') ?? {});
-    storedItemInfos.forEach(
-      (key, value) {
-        if (itemInfos[key] == null) {
-          if (value['imagePath'] != null) {
-            itemInfos[key] = ItemInfo(
-              imagePath: value['imagePath'],
-              id: value['id'],
-              price: value['price'],
-              maxLevel: value['maxLevel'],
-            );
-          } else if (value['icon'] != null) {
-            itemInfos[key] = ExtraItemInfo(
-              icon: IconData(value['icon'], fontFamily: 'MaterialIcons'),
-              price: value['price'],
-              maxLevel: value['maxLevel'],
-            );
-          }
-        }
-      },
-    );
-    saveItemInfos();
+  List<ItemInfo> itemInfos = [];
+  Set<int> occupiedExtraId = {};
+
+  int? _getExtraIdNum(String id) {
+    RegExp regExp = RegExp(r'^Extra\d+$');
+    if (!regExp.hasMatch(id)) {
+      return null;
+    }
+    int num = int.parse(id.substring(5));
+    return num;
   }
 
-  void addItemInfos(String key, ItemInfoBase value) {
-    itemInfos.addEntries([MapEntry(key, value)]);
+  String _getExtraId(int idNum) {
+    return 'Extra$idNum';
+  }
+
+  int _getFirstUnoccupiedExtraIdNum() {
+    int num = 0;
+    while (occupiedExtraId.contains(num)) {
+      ++num;
+    }
+    return num;
+  }
+
+  void addExtraItemInfos(String name, int price, int maxLevel, int materialIconCodePoint) {
+    int num = _getFirstUnoccupiedExtraIdNum();
+    itemInfos.add(ExtraItemInfo(
+        id: _getExtraId(num),
+        name: name,
+        price: price,
+        maxLevel: maxLevel,
+        materialIconCodePoint: materialIconCodePoint));
+    occupiedExtraId.add(num);
+    _saveExtraItemInfos();
     notifyListeners();
   }
 
-  void removeItemInfos(String key) {
-    itemInfos.remove(key);
+  void removeExtraItemInfos(String id) {
+    itemInfos.removeWhere((element) => element.id == id);
+    occupiedExtraId.remove(_getExtraIdNum(id)!);
+    _saveExtraItemInfos();
     notifyListeners();
   }
 
-  void saveItemInfos() {
-    Map<String, Map> jsonSerialized = {};
-    itemInfos.forEach((key, value) {
-      if (!itemInfosRaw.containsKey(key)) {
-        jsonSerialized[key] = value.jsonEncodable;
-      }
-    });
-    storage.setItem('powerUpStoredItemInfos', jsonSerialized);
+  void _saveExtraItemInfos() {
+    List<Map> jsonSerialized = [
+      for (var e in itemInfos)
+        if (e is ExtraItemInfo) e.jsonEncodable
+    ];
+    storage.setItem('powerUpExtraItemInfos', jsonSerialized);
   }
 
   Map<String, int> get sliderValues {
     var values = storage.getItem('powerUpSliderValues') ?? {};
-    Map<String, int> result = {
-      for (String key in itemInfos.keys) key: values[key] ?? 0
-    };
+    Map<String, int> result = {};
+    for (var e in itemInfos) {
+      result[e.id] = values[e.id] ?? 0;
+      result[e.id] = min(result[e.id]!, e.maxLevel);
+    }
+    sliderValues = result;
     return result;
   }
 
   set sliderValues(Map<String, int> newValues) {
     storage.setItem('powerUpSliderValues', newValues);
+  }
+
+  bool get showDetails {
+    var values = storage.getItem('powerUpShowDetails') ?? false;
+    return values;
+  }
+
+  set showDetails(bool newValues) {
+    storage.setItem('powerUpShowDetails', newValues);
   }
 }
