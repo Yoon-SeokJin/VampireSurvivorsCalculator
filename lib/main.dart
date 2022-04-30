@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:localstorage/localstorage.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:url_strategy/url_strategy.dart';
 import 'package:yaml/yaml.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -59,6 +60,11 @@ class MyHomePage extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
+  void _launchGithubUrl() async {
+    Uri url = Uri.parse('https://github.com/Yoon-SeokJin/VampireSurvivorsCalculator');
+    if (!await launchUrl(url)) throw 'Could not launch $url';
+  }
+
   @override
   Widget build(BuildContext context) {
     debugPrint(Localizations.localeOf(context).toString());
@@ -75,6 +81,10 @@ class MyHomePage extends StatelessWidget {
               text: AppLocalizations.of(context)!.calculatorInfo,
               style: Theme.of(context).textTheme.bodyText2!.apply(color: Colors.white),
             ),
+          ),
+          IconButton(
+            icon: Image.asset('images/GitHub-Mark-32px.png'),
+            onPressed: _launchGithubUrl,
           ),
         ],
       ),

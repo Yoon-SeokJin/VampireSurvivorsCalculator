@@ -58,7 +58,7 @@ class ItemSliderList extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(AppLocalizations.of(context)!
-                  .versionInfo('0.5.103', AppLocalizations.of(context)!.dateFormat(24, 4, 2022))),
+                  .versionInfo('0.5.103', AppLocalizations.of(context)!.dateFormat(1, 5, 2022))),
             ),
             const Spacer(),
             ElevatedButton(
