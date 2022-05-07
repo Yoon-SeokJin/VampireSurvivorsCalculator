@@ -16,4 +16,4 @@
  - {price: 10000, maxLevel: 1, imagePath: 'images/Revival.png', id: 'revival'}
  - {price: 1000, maxLevel: 4, imagePath: 'images/Reroll.png', id: 'reroll'}
  - {price: 100, maxLevel: 3, imagePath: 'images/Skip.png', id: 'skip'}
- - {price: 100, maxLevel: 3, imagePath: 'images/Banish.png', id: 'banish'}
+ - {price: 100, maxLevel: 4, imagePath: 'images/Banish.png', id: 'banish'}
