@@ -19,7 +19,11 @@ https://vampire-survivors-calculator.web.app
 1. Open `lib > item_infos.yaml`
 2. Add new line fit below format
 ```
- - {price: `cost when any power ups are bought`, maxLevel: `max level`, imagePath: `icon image file path`, id: `identifier`}
+ - {price: (1), maxLevel: (2), imagePath: (3), id: (4)}
+ (1) : cost when any power ups are bought
+ (2) : max level
+ (3) : icon image file path
+ (4) : identifier, generally camelCase item name.
 ```
 # How to change icon
 
