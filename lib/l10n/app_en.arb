@@ -31,9 +31,10 @@
             }
         }
     },
-    "min": "min",
-    "max": "max",
-    "powerUpName": "{id, select, might{Might} armor{Armor} maxHealth{Max Health} recovery{Recovery} coolDown{Cooldown} area{Area} speed{Speed} duration{Duration} amount{Amount} moveSpeed{Move speed} magnet{Magnet} luck{Luck} growth{Growth} greed{Greed} curse{Curse} revival{Revival} reroll{Reroll} skip{Skip} banish{Banish} other{Missing no.}}",
+    "powerUpButtonAdd": "add",
+    "powerUpButtonMin": "min",
+    "powerUpButtonMax": "max",
+    "powerUpName": "{id, select, might{Might} armor{Armor} maxHealth{Max Health} recovery{Recovery} coolDown{Cooldown} area{Area} speed{Speed} duration{Duration} amount{Amount} moveSpeed{Move speed} magnet{Magnet} luck{Luck} growth{Growth} greed{Greed} curse{Curse} revival{Revival} omni{Omni} reroll{Reroll} skip{Skip} banish{Banish} other{Missing no.}}",
     "@powerUpName": {
         "placeholders": {
             "id": {

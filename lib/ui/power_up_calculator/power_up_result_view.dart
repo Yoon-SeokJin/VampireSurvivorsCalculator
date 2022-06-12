@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'power_up_pool.dart';
-import 'power_up_calculator.dart';
+import 'power_up_calculator_viewmodel.dart';
+import '../widget/power_up_info_icon.dart';
 
-class ResultPanel extends StatelessWidget {
-  const ResultPanel({Key? key}) : super(key: key);
+class PowerUpResultView extends StatelessWidget {
+  const PowerUpResultView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     debugPrint('result panel rebuilt');
-    List<Result> results = context.watch<PowerUpCalculator>().getResult;
+    final vmWatch = context.watch<PowerUpCalculatorViewmodel>();
+    final vmRead = context.read<PowerUpCalculatorViewmodel>();
+    final resultList = vmWatch.getResult(context);
     late Widget displayResult;
-    if (context.watch<PowerUpPool>().showDetails) {
+    if (vmWatch.showDetail) {
       displayResult = Expanded(
         child: SingleChildScrollView(
           controller: ScrollController(),
@@ -39,27 +41,27 @@ class ResultPanel extends StatelessWidget {
                         ))
                     .toList(),
               ),
-              for (Result result in results)
+              for (final result in resultList)
                 TableRow(
                   decoration: BoxDecoration(
-                      border: Border(
-                          top: BorderSide(
-                              width: 0.5,
-                              style: result.order != null ? BorderStyle.solid : BorderStyle.none))),
+                    border: Border(
+                      top: BorderSide(
+                        width: 0.5,
+                        style: result.order != null ? BorderStyle.solid : BorderStyle.none,
+                      ),
+                    ),
+                  ),
                   children: [
                     Text((result.order ?? '').toString(),
                         style: Theme.of(context).textTheme.headline6),
                     SizedBox.square(
                       dimension: 48.0,
-                      child: result.itemInfo.figure,
+                      child: result.figure,
                     ),
-                    Text(context.watch<PowerUpPool>().powerUps[result.itemInfo.id]!.toString(),
-                        style: Theme.of(context).textTheme.headline6),
-                    Text(result.itemInfo.getName(context),
-                        style: Theme.of(context).textTheme.headline6),
+                    Text(result.level.toString(), style: Theme.of(context).textTheme.headline6),
+                    Text(result.name.toString(), style: Theme.of(context).textTheme.headline6),
                     Text(result.cost.toString(), style: Theme.of(context).textTheme.headline6),
-                    Text(result.costAccumulate.toString(),
-                        style: Theme.of(context).textTheme.headline6),
+                    Text(result.costAcc.toString(), style: Theme.of(context).textTheme.headline6),
                   ]
                       .map((e) => Padding(
                             child: e,
@@ -78,10 +80,10 @@ class ResultPanel extends StatelessWidget {
           child: Wrap(
             runSpacing: 30,
             children: [
-              for (Result result in results)
-                ItemInfoIcon(
-                  figure: result.itemInfo.figure,
-                  level: context.watch<PowerUpPool>().powerUps[result.itemInfo.id]!,
+              for (final result in resultList)
+                PowerUpInfoIcon(
+                  figure: result.figure,
+                  level: result.level,
                   order: result.order,
                 ),
             ],
@@ -89,7 +91,6 @@ class ResultPanel extends StatelessWidget {
         ),
       );
     }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -100,69 +101,20 @@ class ResultPanel extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: Text(
                   AppLocalizations.of(context)!.totalCost +
-                      ': ${results.isNotEmpty ? results.last.costAccumulate : 0}',
+                      ': ${resultList.isNotEmpty ? resultList.last.costAcc : 0}',
                   style: Theme.of(context).textTheme.headline5),
             ),
             const Spacer(),
             Text(AppLocalizations.of(context)!.details),
             Switch(
-              value: context.watch<PowerUpPool>().showDetails,
-              onChanged: (bool newValue) {
-                context.read<PowerUpPool>().showDetails = newValue;
+              value: vmWatch.showDetail,
+              onChanged: (bool value) {
+                vmRead.setShowDetail(value);
               },
             ),
           ],
         ),
         displayResult,
-      ],
-    );
-  }
-}
-
-class ItemInfoIcon extends StatelessWidget {
-  const ItemInfoIcon({
-    Key? key,
-    required this.figure,
-    required this.order,
-    required this.level,
-  }) : super(key: key);
-
-  final Widget figure;
-  final int? order;
-  final int level;
-
-  Widget getOutlinedText(String text) {
-    return Stack(
-      children: [
-        Text(text,
-            style: TextStyle(
-                foreground: Paint()
-                  ..style = PaintingStyle.stroke
-                  ..strokeWidth = 3
-                  ..color = Colors.black)),
-        Text(text, style: const TextStyle(color: Colors.white))
-      ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.bottomRight,
-      children: [
-        Stack(
-          children: [
-            SizedBox(
-              width: (Theme.of(context).dataTableTheme.dataRowHeight ?? kMinInteractiveDimension) *
-                  1.5,
-              height: (Theme.of(context).dataTableTheme.dataRowHeight ?? kMinInteractiveDimension) *
-                  1.5,
-              child: figure,
-            ),
-            getOutlinedText((order ?? '').toString())
-          ],
-        ),
-        getOutlinedText('Lv' + level.toString()),
       ],
     );
   }

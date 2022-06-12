@@ -76,7 +76,8 @@ flutter:
 
   assets:
     - images/
-    - lib/item_infos.yaml
+    - lib/power_up_info.yaml
+    - lib/version_info.yaml
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
